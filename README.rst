@@ -1,2 +1,4 @@
-# fortios-utils
-Very experimental miscellaneous utilities for fortios (fortigate)
+fortios-xutils
+================
+
+Very experimental miscellaneous and extra utilities for fortios (fortigate).
