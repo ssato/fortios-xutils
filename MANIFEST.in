@@ -1,0 +1,9 @@
+include LICENSE.MIT
+include MANIFEST.in
+include NEWS
+include README.*
+include pkg/*
+include setup.*
+include requirements.*
+recursive-include src *.py
+recursive-include tests *.py *.txt *.json
