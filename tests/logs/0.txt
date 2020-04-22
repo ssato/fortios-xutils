@@ -1,0 +1,76 @@
+ssato@x1-carbon-gen6% ls                                                                                                                    ~/repos/public/github.com/ssato/fortios-xutils.git
+LICENSE.MIT  MANIFEST.in  NEWS  README.rst  build  dist  fortios_xutils.egg-info  pkg  requirements.txt  setup.cfg  setup.py  src  tests  tox.ini
+ssato@x1-carbon-gen6% PYTHONPATH=src python3 src/fortios_xutils/cli.py --help                                                               ~/repos/public/github.com/ssato/fortios-xutils.git
+Usage: cli.py [OPTIONS] COMMAND [ARGS]...
+
+  CLI frontend entrypoint.
+
+Options:
+  -v, --verbose
+  --help         Show this message and exit.
+
+Commands:
+  firewall-policy-search  Make and save firewall address table...
+  firewall-save           Make and save firewall address table...
+  parse                   :param filepath: Path of the input fortios' "show...
+  search                  :param filepath: Path of the JSON input file...
+ssato@x1-carbon-gen6% PYTHONPATH=src python3 src/fortios_xutils/cli.py parse --help                                                         ~/repos/public/github.com/ssato/fortios-xutils.git
+Usage: cli.py parse [OPTIONS] FILEPATH
+
+  :param filepath: Path of the input fortios' "show *configuration" output
+  :param outdir: Dir to save parsed results as JSON files
+
+Options:
+  -O, --outdir TEXT  Output dir to save parsed results [out relative to input
+                     filepath
+  --help             Show this message and exit.
+ssato@x1-carbon-gen6% PYTHONPATH=src python3 src/fortios_xutils/cli.py parse -O /tmp/1/ tests/res/foritgate_cli_show_sample_0.txt           ~/repos/public/github.com/ssato/fortios-xutils.git
+ssato@x1-carbon-gen6% ls /tmp/1                                                                                                             ~/repos/public/github.com/ssato/fortios-xutils.git
+fortigate-01
+ssato@x1-carbon-gen6% ls /tmp/1/fortigate-01                                                                                                ~/repos/public/github.com/ssato/fortios-xutils.git
+all.json               firewall_addrgrp.json  firewall_service_category.json  firewall_service_group.json  system_global.json          system_replacemsg-group.json
+firewall_address.json  firewall_policy.json   firewall_service_custom.json    metadata.json                system_object-tagging.json  system_settings.json
+ssato@x1-carbon-gen6% jq '.' /tmp/1/fortigate-01/all.json | head                                                                            ~/repos/public/github.com/ssato/fortios-xutils.git
+{
+  "configs": [
+    {
+      "config": "system global",
+      "admintimeout": "30",
+      "hostname": "fortigate-01",
+      "switch-controller": "enable",
+      "timezone": "60",
+      "vdom-admin": "disable"
+    },
+ssato@x1-carbon-gen6% jq '.' /tmp/1/fortigate-01/firewall_address.json | head                                                               ~/repos/public/github.com/ssato/fortios-xutils.git
+[
+  {
+    "edit": "FABRIC_DEVICE",
+    "uuid": "a76e2dd8-aa8f-51e9-0fac-7aa6777f1d88",
+    "comment": "IPv4 addresses of Fabric Devices."
+  },
+  {
+    "edit": "FIREWALL_AUTH_PORTAL_ADDRESS",
+    "uuid": "d9d069fa-7ebb-51e7-2cd0-c9608532cb24"
+  },
+ssato@x1-carbon-gen6% PYTHONPATH=src python3 src/fortios_xutils/cli.py search --help                                                        ~/repos/public/github.com/ssato/fortios-xutils.git
+Usage: cli.py search [OPTIONS] FILEPATH PATH_EXP
+
+  :param filepath: Path of the JSON input file contains parsed results
+  :param path_exp: JMESPath expression to search for
+
+Options:
+  --help  Show this message and exit.
+ssato@x1-carbon-gen6% PYTHONPATH=src python3 src/fortios_xutils/cli.py search /tmp/1/fortigate-01/all.json "configs[?config=='system global'] | [0].hostname"
+"fortigate-01"
+ssato@x1-carbon-gen6% PYTHONPATH=src python3 src/fortios_xutils/cli.py search /tmp/1/fortigate-01/all.json "configs[?config=='system global']"
+[
+  {
+    "config": "system global",
+    "admintimeout": "30",
+    "hostname": "fortigate-01",
+    "switch-controller": "enable",
+    "timezone": "60",
+    "vdom-admin": "disable"
+  }
+]
+ssato@x1-carbon-gen6%                                                                                                                       ~/repos/public/github.com/ssato/fortios-xutils.git
