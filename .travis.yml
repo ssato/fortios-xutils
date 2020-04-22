@@ -1,0 +1,21 @@
+# see: http://about.travis-ci.org/docs/user/languages/python/
+language: python
+python:
+#    - 2.7
+    - 3.7
+# Don't run tests Until "AttributeError: jFlakesChecker' object has no
+# attribute 'CONSTANT'" error is resolved:
+#    - 3.8
+# see: http://docs.travis-ci.com/user/caching/#pip-cache
+cache: pip
+install:
+    - pip install tox-travis
+script:
+    - tox
+after_success:
+  - coveralls
+notifications:
+    email:
+        recipients:
+            - satoru.satoh+github@gmail.com
+        on_failure: always
