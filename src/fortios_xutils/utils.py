@@ -19,13 +19,21 @@ import jmespath
 _ENCODINGS = ("utf-8", "shift-jis")
 
 
-def ensure_dir_exists(filepath):
-    """Ensure dir for filepath exists
+def ensure_dir_exists(filepath, subdir=None):
+    """Ensure dir for given file path `filepath` exists
+
+    :param filepath: File path might be created later
+    :param subdir: Sub dir
+    :return: A dir path
     """
     tdir = os.path.dirname(filepath)
+    if subdir:
+        tdir = os.path.join(tdir, subdir)
 
     if not os.path.exists(tdir):
         os.makedirs(tdir)
+
+    return tdir
 
 
 def is_str(obj):
