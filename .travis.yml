@@ -2,6 +2,7 @@
 language: python
 python:
 #    - 2.7
+    - 3.6
     - 3.7
 # Don't run tests Until "AttributeError: jFlakesChecker' object has no
 # attribute 'CONSTANT'" error is resolved:
