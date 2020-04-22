@@ -13,6 +13,7 @@ from __future__ import absolute_import
 import collections.abc
 import logging
 import os.path
+import re
 
 import anyconfig
 
@@ -258,7 +259,14 @@ def cname_to_filename(cname, ext=".json"):
     """
     :return: A filename generated from `cname`
     """
-    return cname.replace(' ', '_') + ext
+    return re.sub(r"[\s\"']", '_', cname) + ext
+
+
+def list_cnames_for_regexp(cnf, regexp=None):
+    """List config names.
+    """
+    return sorted(c for c in jmespath_search("configs[].config[]", cnf)
+                  if regexp.match(c))
 
 
 def parse_show_config_and_dump(inpath, outdir, cnames=CNF_NAMES):
@@ -274,9 +282,11 @@ def parse_show_config_and_dump(inpath, outdir, cnames=CNF_NAMES):
     cnf = parse_show_config(inpath)  # {"configs": [...]}
 
     vdoms = list_vdom_names(cnf)
+    _has_vdoms = vdoms and len(vdoms) > 1
+
     try:
         # It should have this in most cases.
-        hostname = hostname_from_configs(cnf, has_vdoms_=bool(vdoms))
+        hostname = hostname_from_configs(cnf, has_vdoms_=_has_vdoms)
     except ValueError as exc:
         LOG.warning("%r: %s\nCould not resovle hostname", exc, inpath)
         hostname = unknown_name()
@@ -287,17 +297,18 @@ def parse_show_config_and_dump(inpath, outdir, cnames=CNF_NAMES):
     anyconfig.dump(cnf, os.path.join(houtdir, ALL_FILENAME))
 
     gmark = '*'
-    opts = dict(has_vdoms_=bool(vdoms))
+    opts = dict(has_vdoms_=_has_vdoms)
     for cname in cnames:
         if gmark in cname:
-            cname_ = cname.split(gmark)[0]
-            pexp = "configs[?contains(config, '{}')]".format(cname_)
+            cregexp = re.compile(cname)
+            if cregexp:
+                ccnames = list_cnames_for_regexp(cnf, regexp=cregexp)
 
-            # [{"config": <name>, ...}]
-            ccnfs = jmespath_search(pexp, cnf, **opts)
-            for ccnf in ccnfs:
-                ccname = cname_to_filename(ccnf.get("config", unknown_name()))
-                anyconfig.dump(ccnf, os.path.join(houtdir, ccname))
+                for ccn in ccnames:
+                    pexp = "configs[?config=='{}'].edits[]".format(ccn)
+                    ccnf = jmespath_search(pexp, cnf, **opts)
+                    ccname = cname_to_filename(ccn)
+                    anyconfig.dump(ccnf, os.path.join(houtdir, ccname))
         else:
             # TODO: Save configs per global and VDoms?
             pexp = "configs[?config=='{}'].edits[]".format(cname)
