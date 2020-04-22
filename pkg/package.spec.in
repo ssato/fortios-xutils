@@ -13,6 +13,7 @@ URL:            https://github.com/ssato/fortios-xutils
 Source0:        %{url}/archive/RELEASE_%{version}.tar.gz
 BuildArch:      noarch
 BuildRequires:  python3-setuptools
+BuildRequires:  python3-devel
 %if %{with tests}
 BuildRequires:  python3-tox
 %endif
@@ -25,6 +26,9 @@ Requires:       python3-jmespath
 # It's available from https://copr.fedorainfracloud.org/coprs/ssato/python-anyconfig/
 Requires:       python3-anyconfig
 Requires:       python3-anyconfig-fortios-backend
+Requires:       python3-click
+Requires:       python3-jmespath
+Requires:       python3-netaddr
 %{?python_provide:%python_provide python3-%{pkgname}}
 
 %description -n python3-%{pkgname} %{desc}
@@ -47,6 +51,7 @@ tox -e py$(python -c "import sys; sys.stdout.write(sys.version[:3].replace('.', 
 %doc README.rst NEWS
 %license LICENSE.MIT
 %{python3_sitelib}/*
+%{_bindir}/*
 
 %changelog
 * Sat Apr 18 2020 Satoru SATOH <satoru.satoh@gmail.com> - 0.1.0-1
