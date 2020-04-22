@@ -75,10 +75,11 @@ def firewall_save(filepath, outpath):
 
 @click.command()
 @click.argument("filepath", type=click.Path(exists=True, readable=True))
-@click.argument("ip_s")
 @click.option("--pdf", help="File is the pandas.DataFrame data file",
               default=False)
-def firewall_search(filepath, ip_s, pdf):
+@click.option("-i", "--ip", "ip_s",
+              help="Specify an IP address to search")
+def firewall_policy_search(filepath, pdf, ip_s):
     """
     Make and save firewall address table (:class:`pandas.DataFrame` object).
 
@@ -111,7 +112,7 @@ def main(verbose):
     LOG.setLevel([logging.WARNING, logging.INFO, logging.DEBUG][verbose])
 
 
-for cmd in (parse, search, firewall_save, firewall_search):
+for cmd in (parse, search, firewall_save, firewall_policy_search):
     main.add_command(cmd)
 
 if __name__ == '__main__':
