@@ -10,12 +10,16 @@ r"""Misc CLI commands.
 """
 from __future__ import absolute_import
 
+import logging
 import os.path
 
 import anyconfig
 import click
 
 from fortios_xutils import parser, firewall
+
+
+LOG = logging.getLogger("fortios_xutils")
 
 
 @click.command()
@@ -99,10 +103,12 @@ def firewall_search(filepath, ip_s, pdf):
 
 
 @click.group()
-def main():
+@click.option("-v", "--verbose", count=True, default=0)
+def main(verbose):
     """CLI frontend entrypoint.
     """
-    pass
+    verbose = min(verbose, 2)
+    LOG.setLevel([logging.WARNING, logging.INFO, logging.DEBUG][verbose])
 
 
 for cmd in (parse, search, firewall_save, firewall_search):
