@@ -38,18 +38,37 @@ def parse(filepath, outdir):
     parser.parse_show_config_and_dump(filepath, outdir)
 
 
-@click.command()
-@click.argument("filepath", type=click.Path(exists=True, readable=True))
-@click.argument("path_exp")
-def search(filepath, path_exp):
+def parse_json_files_itr(filepaths, path_exp):
     """
-    :param filepath: Path of the JSON input file contains parsed results
+    :param filepaths:
+        A list of the JSON input file paths. Each JSON file contains parsed
+        results
     :param path_exp: JMESPath expression to search for
     """
-    cnf = parser.load(filepath)
-    res = parser.jmespath_search(path_exp, cnf,
-                                 has_vdoms_=parser.has_vdom(cnf))
-    print(anyconfig.dumps(res, ac_parser="json", indent=2))
+    for filepath in filepaths:
+        cnf = parser.load(filepath)
+        res = parser.jmespath_search(path_exp, cnf,
+                                     has_vdoms_=parser.has_vdom(cnf))
+        yield (filepath, res)
+
+
+@click.command()
+@click.argument("filepaths", nargs=-1)
+@click.option("-P", "--path", "path_exp")
+def search(filepaths, path_exp):
+    """
+    :param filepaths:
+        A list of the JSON input file paths. Each JSON file contains parsed
+        results
+    :param path_exp: JMESPath expression to search for
+    """
+    fp_res_pairs = list(parse_json_files_itr(filepaths, path_exp))
+
+    if len(filepaths) == 1:
+        print(anyconfig.dumps(fp_res_pairs[0][1], ac_parser="json", indent=2))
+    else:
+        res = [dict(filepath=t[0], results=t[1]) for t in fp_res_pairs]
+        print(anyconfig.dumps(res, ac_parser="json", indent=2))
 
 
 @click.command()
