@@ -10,12 +10,16 @@ r"""Parse fortios' `show *configuration' outputs and generates various outputs.
 """
 from __future__ import absolute_import
 
+import os.path
+
 import pandas
 
 from . import netutils, parser, utils
 
 
 ADDR_TYPES = (IP_SET, IP_NETWORK) = ("ipset", "network")
+
+DF_ZERO = pandas.DataFrame()
 
 
 def df_by_query(path_exp, data, normalize_fn=None,
@@ -120,7 +124,7 @@ def make_firewall_addrgrp_table(cnf, has_vdoms_=False, vdom=None):
     return rdf
 
 
-def make_firewall_address_table(cnf, has_vdoms_=False, vdom=None):
+def make_firewall_address_table(cnf, vdom=None):
     """
     :param cnf: A mapping object contains firewall configurations
     :param has_vdoms: True if givne `cnf` contains vdoms
@@ -143,6 +147,74 @@ def make_firewall_address_table(cnf, has_vdoms_=False, vdom=None):
     return pandas.concat([df_fa, df_diff])
 
 
+def guess_filetype(filepath, compression=None):
+    """
+    :param filepath: File path
+    :param filetype: File type of `filepath`
+    :param compression: Compression type
+    """
+    if compression:
+        fext = os.path.splitext(os.path.splitext(filepath)[0])[-1]
+    else:
+        fext = os.path.splitext(filepath)[-1]
+
+    return fext.replace('.', '')
+
+
+def pandas_save(rdf, outpath, filetype=None, compression=None):
+    """
+    :param rdf: A :class:`pandas.DataFrame` object
+    :param outpath: Output file path
+    :param filetype: File type to save as
+    :param compression: Compression method
+    """
+    if filetype:
+        save_fn_name = "to_" + filetype
+    else:
+        save_fn_name = "to_" + guess_filetype(outpath, compression=compression)
+    try:
+        save_fn = getattr(rdf, save_fn_name)
+    except AttributeError:
+        raise ValueError("Could not find appropriate save functions: "
+                         "outpath={}, filetype={!s}".format(outpath, filetype))
+
+    utils.ensure_dir_exists(outpath)
+    save_fn(outpath, compression=compression)
+
+
+def pandas_load(inpath, filetype=None, compression=None):
+    """
+    :param inpath: Output file path
+    :param filetype: File type to save as
+    :param compression: Compression method
+    """
+    load_fn_name = "read_" + filetype if filetype else guess_filetype(inpath)
+    try:
+        load_fn = getattr(pandas, load_fn_name)
+    except AttributeError:
+        raise ValueError("Could not find appropriate load functions: "
+                         "inpath={}, filetype={!s}".format(inpath, filetype))
+
+    return load_fn(inpath, compression=compression)
+
+
+def make_and_save_firewall_address_table(cnf, outpath, vdom=None,
+                                         filetype=None, compression=None):
+    """
+    :param cnf: A mapping object contains firewall configurations
+    :param outpath: Output file path
+    :param vdom: Specify vdom to make table
+    :param filetype: File type to save as
+    :param compression: Compression method
+
+    :return: A :class:`pandas.DataFrame` object
+    """
+    rdf = make_firewall_address_table(cnf, vdom=vdom)
+    pandas_save(rdf, outpath, filetype=filetype, compression=compression)
+
+    return rdf
+
+
 def search_by_addr_1(ip_s, tbl_df):
     """
     :param ip_s: A str represents an IP address
@@ -152,7 +224,7 @@ def search_by_addr_1(ip_s, tbl_df):
         raise ValueError("Expected a str but: {!r}".format(ip_s))
 
     if '/' not in ip_s:  # e.g. 192.168.122.1
-        ip_s = ip_s + '/32'
+        ip_s = ip_s + '/32'  # Normalize it.
 
     def _ip_in_ipset(addrs):
         """Is given IP in the ipsets `addrs`?"""
@@ -165,12 +237,12 @@ def search_by_addr_1(ip_s, tbl_df):
     try:
         ipsets = tbl_df[tbl_df.addrs.apply(_ip_in_ipset)]
     except KeyError:
-        ipsets = pandas.DataFrame()  # Not found rows have key 'addrs'.
+        ipsets = DF_ZERO  # Not found rows have key 'addrs'.
 
     try:
         nets = tbl_df[tbl_df.addr.apply(_ip_in_net)]
     except KeyError:
-        nets = pandas.DataFrame()  # Not found rows have key 'addr'.
+        nets = DF_ZERO  # Not found rows have key 'addr'.
 
     if ipsets.empty:
         return nets

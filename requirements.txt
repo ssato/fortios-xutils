@@ -1,4 +1,5 @@
 anyconfig
 anyconfig-fortios-backend
+click
 jmespath
 netaddr

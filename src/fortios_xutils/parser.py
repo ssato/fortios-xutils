@@ -13,12 +13,10 @@ from __future__ import absolute_import
 import collections.abc
 import logging
 import os.path
-import re
 
 import anyconfig
 
-
-from . import netutils, utils
+from . import utils
 
 
 CNF_NAMES = ("system.*",
@@ -192,6 +190,23 @@ def parse_show_config(filepath):
     return cnf
 
 
+def load(filepath):
+    """
+    Load JSON file contains parsed results
+
+    :param filepath:
+        a str or :class:`pathlib.Path` object represents file path contains
+        parsed results of 'show full-configuration` or 'show' output
+
+    :return: A mapping object holding configurations
+    :raises: IOError, OSError and so on
+    """
+    cnf = utils.try_ac_load(filepath)
+    validate(cnf, filepath)
+
+    return cnf
+
+
 def hostname_from_configs(cnf, has_vdoms_=False):
     """
     Detect hostname of the fortigate node from its 'system global'
@@ -204,7 +219,7 @@ def hostname_from_configs(cnf, has_vdoms_=False):
     """
     sgcnf = jmespath_search("configs[?config=='system global']", cnf,
                             has_vdoms_=has_vdoms_)
-    
+
     if not sgcnf:  # I believe that it never happen.
         raise ValueError("No system global configs found. Is it correct data?")
 
