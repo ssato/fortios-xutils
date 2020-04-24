@@ -54,5 +54,5 @@ tox -e py$(python -c "import sys; sys.stdout.write(sys.version[:3].replace('.', 
 %{_bindir}/*
 
 %changelog
-* Sat Apr 18 2020 Satoru SATOH <satoru.satoh@gmail.com> - 0.1.0-1
+* Fri Apr 24 2020 Satoru SATOH <satoru.satoh@gmail.com> - 0.1.0-1
 - Initial packaging
