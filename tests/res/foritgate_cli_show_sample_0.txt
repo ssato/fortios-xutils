@@ -193,6 +193,7 @@ config firewall addrgrp
     edit "Monitor_Servers"
         set uuid f0b5a5c5-6c90-4ee8-9f02-31c445e868b5
         set member "host_192.168.3.1" "host_192.168.3.3" "host_192.168.3.5"
+    next
 end
 config firewall wildcard-fqdn custom
     edit "g-Adobe Login"
