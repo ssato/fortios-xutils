@@ -123,6 +123,9 @@ def jmespath_search(path_exp, data, normalize_fn=None, has_vdoms_=False,
     if not res_global:
         return res_vdoms
 
+    if not res_vdoms:
+        return res_global
+
     return res_global + res_vdoms
 
 
