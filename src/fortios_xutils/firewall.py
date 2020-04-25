@@ -151,7 +151,7 @@ def make_firewall_address_table(cnf, vdom=None):
         suffixes=('', '_r')
     ).drop(columns="edit_r").drop(columns="uuid_r").drop(columns="member")
 
-    return pandas.concat([df_fa, df_diff])
+    return pandas.concat([df_fa, df_diff], sort=False)
 
 
 def guess_filetype(filepath, compression=None):
