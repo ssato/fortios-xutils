@@ -148,8 +148,9 @@ def config_edits_search(cname, data, normalize_fn=None, has_vdoms_=False,
 
     :return: JMESPath search result :: [<mapping object>]
     """
-    return config_edits_search(cname, data, normalize_fn=normalize_fn,
-                               has_vdoms_=has_vdoms_, vdom=vdom)
+    pexp = _config_edits_path_exp(cname)
+    return jmespath_search(pexp, data, normalize_fn=normalize_fn,
+                           has_vdoms_=has_vdoms_, vdom=vdom)
 
 
 def validate(cnf, filepath=None):
