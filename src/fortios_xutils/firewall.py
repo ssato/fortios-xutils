@@ -81,6 +81,7 @@ def normalize_fa(fa_dict):
                                            fa_dict["end-ip"])
         fa_dict["type"] = IP_SET
         fa_dict["addrs"] = [str(a) for a in ipset]  # expanded ipset
+        fa_dict["addr"] = False
 
     elif "subnet" in fa_dict:  # ip address or ip network
         obj = netutils.subnet_to_ip(*fa_dict["subnet"])
@@ -88,9 +89,15 @@ def normalize_fa(fa_dict):
         if netutils.is_network_address_object(obj):
             fa_dict["type"] = IP_NETWORK
             fa_dict["addr"] = str(obj)
+            fa_dict["addrs"] = []
         else:
             fa_dict["type"] = IP_SET
             fa_dict["addrs"] = [str(a) for a in obj]
+            fa_dict["addr"] = False
+
+    else:
+        fa_dict["addr"] = False
+        fa_dict["addrs"] = []
 
     return fa_dict
 
@@ -228,11 +235,11 @@ def search_by_addr_1(ip_s, tbl_df):
 
     def _ip_in_ipset(addrs):
         """Is given IP in the ipsets `addrs`?"""
-        return ip_s in addrs if addrs == addrs else False
+        return ip_s in addrs if addrs else False
 
     def _ip_in_net(addr):
         """Is given IP in the network `addrs`?"""
-        return netutils.is_ip_in_network(ip_s, addr) if addr == addr else False
+        return netutils.is_ip_in_network(ip_s, addr) if addr else False
 
     try:
         ipsets = tbl_df[tbl_df.addrs.apply(_ip_in_ipset)]
