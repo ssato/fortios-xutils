@@ -245,11 +245,11 @@ def list_vdom_names(cnf):
     if not has_vdom(cnf):
         return ["root"]
 
-    vdoms = jmespath_search("configs[?config=='vdom'].edits[0].edit", cnf)
+    vdoms = set(jmespath_search("configs[?config=='vdom'].edits[0].edit", cnf))
     if not vdoms:
         raise ValueError("VDoms were not found. Is it correct data?")
 
-    return vdoms
+    return sorted(vdoms)
 
 
 def unknown_name():
@@ -266,11 +266,15 @@ def cname_to_filename(cname, ext=".json"):
     return re.sub(r"[\s\"']", '_', cname) + ext
 
 
-def list_cnames_for_regexp(cnf, regexp=None):
+def list_cnames_for_regexp(cnf, regexp=None, has_vdoms_=False):
     """List config names.
+
+    :param cnf: Config data loaded or parsed log.
+    :param has_vdoms_: True if givne `cnf` contains vdoms
     """
-    return sorted(c for c in jmespath_search("configs[].config[]", cnf)
-                  if regexp.match(c))
+    return sorted(set(c for c in jmespath_search("configs[].config[]", cnf,
+                                                 has_vdoms_=has_vdoms_)
+                      if regexp.match(c)))
 
 
 def parse_show_config_and_dump(inpath, outdir, cnames=CNF_NAMES):
@@ -306,7 +310,8 @@ def parse_show_config_and_dump(inpath, outdir, cnames=CNF_NAMES):
         if gmark in cname:
             cregexp = re.compile(cname)
             if cregexp:
-                ccnames = list_cnames_for_regexp(cnf, regexp=cregexp)
+                ccnames = list_cnames_for_regexp(cnf, regexp=cregexp,
+                                                 has_vdoms_=_has_vdoms)
 
                 for ccn in ccnames:
                     pexp = "configs[?config=='{}'].edits[]".format(ccn)
