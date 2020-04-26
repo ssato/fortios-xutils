@@ -40,7 +40,10 @@ def subnet_to_ip(addr, netmask):
     if UNI_NETMASK_RE.match(netmask):  # Unicast (host) address
         return [str(ipaddress.ip_interface(addr))]
 
-    return ipaddress.ip_network('/'.join((addr, netmask)))
+    try:
+        return ipaddress.ip_network('/'.join((addr, netmask)))
+    except ValueError:  # It might be host address with mask other than /32.
+        return [str(ipaddress.ip_interface(addr))]
 
 
 @functools.lru_cache(maxsize=32)
