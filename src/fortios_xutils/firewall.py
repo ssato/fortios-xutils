@@ -195,7 +195,7 @@ def pandas_load(inpath, filetype=None, compression=None):
     :param filetype: File type to save as
     :param compression: Compression method
     """
-    load_fn_name = "read_" + filetype if filetype else guess_filetype(inpath)
+    load_fn_name = "read_" + (filetype if filetype else guess_filetype(inpath))
     try:
         load_fn = getattr(pandas, load_fn_name)
     except AttributeError:
