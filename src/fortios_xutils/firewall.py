@@ -21,6 +21,9 @@ ADDR_TYPES = (IP_SET, IP_NETWORK) = ("ipset", "network")
 
 DF_ZERO = pandas.DataFrame()
 
+ADDR_COL_NAMES = ("addr", "srcaddr", "dstaddr")
+ADDRS_COL_NAMES = ("addrs", "srcaddrs", "dstaddrs")
+
 
 def df_by_query(path_exp, data, normalize_fn=None,
                 has_vdoms_=False, vdom=None):
@@ -124,14 +127,18 @@ def make_firewall_addrgrp_table(cnf, has_vdoms_=False, vdom=None):
 
     :return: A :class:`pandas.DataFrame` object
     """
+    keys = ["edit", "uuid", "member"]
     rdf = df_by_query("configs[?config==`firewall addrgrp`].edits[]",
-                      cnf, normalize_fn=normalize_fa,
+                      cnf, normalize_fn=None,
                       has_vdoms_=has_vdoms_, vdom=vdom
-                      ).explode("member").reset_index(drop=True)
-    return rdf
+                      )
+    if rdf.empty:
+        return rdf
+
+    return rdf.explode("member")[keys].reset_index(drop=True)
 
 
-def make_firewall_address_table(cnf, vdom=None):
+def make_firewall_address_table(cnf, has_vdoms_=False, vdom=None):
     """
     :param cnf: A mapping object contains firewall configurations
     :param has_vdoms: True if givne `cnf` contains vdoms
@@ -139,19 +146,87 @@ def make_firewall_address_table(cnf, vdom=None):
 
     :return: A :class:`pandas.DataFrame` object
     """
-    has_vdoms_ = parser.has_vdom(cnf)
     opts = dict(has_vdoms_=has_vdoms_, vdom=vdom)
 
     df_fa = make_firewall_address_table_1(cnf, **opts)
     df_ag = make_firewall_addrgrp_table(cnf, **opts)
 
+    if df_ag.empty:
+        return df_fa
+
     # Add columns (addr*, ...) from df_fa
     df_diff = pandas.merge(
         df_ag, df_fa, left_on="member", right_on="edit",
-        suffixes=('', '_r')
+        suffixes=('', '_r'), how="left"
     ).drop(columns="edit_r").drop(columns="uuid_r").drop(columns="member")
 
     return pandas.concat([df_fa, df_diff], sort=False)
+
+
+def make_firewall_policy_table_1(cnf, df_fa, has_vdoms_=False, vdom=None):
+    """
+    :param cnf: A mapping object contains firewall configurations
+    :param df_fa: A :class:`pandas.DataFrame` object holds firewall addresses
+    :param has_vdoms: True if givne `cnf` contains vdoms
+    :param vdom: Specify vdom to make table
+
+    :return: A :class:`pandas.DataFrame` object
+    """
+    fa_keys = ["edit", "addr", "addrs", "comment"]  # TBD
+    df_fa = df_fa.drop(columns=[k for k in df_fa.columns if k not in fa_keys])
+
+    df_fp = df_by_query("configs[?config==`firewall policy`].edits[]",
+                        cnf, normalize_fn=None,
+                        has_vdoms_=has_vdoms_, vdom=vdom
+                        ).explode(
+                            "srcaddr"
+                        ).explode(
+                            "dstaddr"
+                        ).reset_index(drop=True)
+
+    # TBD: "old_srcaddr", "old_dstaddr"
+    fp_keys = ["edit", "name", "uuid", "srcintf", "dstintf",
+               "srcaddr", "srcaddrs", "dstaddr", "dstaddrs",
+               "action", "schedule", "service", "inspection-mode", "nat",
+               "comments", "comment", "fa_edit"]
+    df_src = pandas.merge(
+        df_fp, df_fa, left_on="srcaddr", right_on="edit",
+        suffixes=('', '_r'), how="left"
+    ).rename(
+        columns=dict(
+            srcaddr="old_srcaddr", addr="srcaddr", addrs="srcaddrs",
+            edit_r="fa_edit"
+        )
+    ).reindex(columns=fp_keys)
+
+    df_dst = pandas.merge(
+        df_fp, df_fa, left_on="dstaddr", right_on="edit",
+        suffixes=('', '_r'), how="left"
+    ).rename(
+        columns=dict(
+            dstaddr="old_dstaddr", addr="dstaddr", addrs="dstaddrs",
+            edit_r="fa_edit"
+        )
+    ).reindex(columns=fp_keys)
+
+    return pandas.concat([df_src, df_dst], sort=False)
+
+
+def make_firewall_policy_table(cnf, vdom=None):
+    """
+    :param cnf: A mapping object contains firewall configurations
+    :param df_fa: A :class:`pandas.DataFrame` object holds firewall addresses
+    :param has_vdoms: True if givne `cnf` contains vdoms
+    :param vdom: Specify vdom to make table
+
+    :return: A :class:`pandas.DataFrame` object
+    """
+    opts = dict(has_vdoms_=parser.has_vdom(cnf), vdom=vdom)
+
+    df_fa = make_firewall_address_table(cnf, **opts)
+    rdf = make_firewall_policy_table_1(cnf, df_fa, **opts)
+
+    return rdf
 
 
 def guess_filetype(filepath, compression=None):
@@ -205,8 +280,8 @@ def pandas_load(inpath, filetype=None, compression=None):
     return load_fn(inpath, compression=compression)
 
 
-def make_and_save_firewall_address_table(cnf, outpath, vdom=None,
-                                         filetype=None, compression=None):
+def make_and_save_firewall_policy_table(cnf, outpath, vdom=None,
+                                        filetype=None, compression=None):
     """
     :param cnf: A mapping object contains firewall configurations
     :param outpath: Output file path
@@ -216,16 +291,20 @@ def make_and_save_firewall_address_table(cnf, outpath, vdom=None,
 
     :return: A :class:`pandas.DataFrame` object
     """
-    rdf = make_firewall_address_table(cnf, vdom=vdom)
+    rdf = make_firewall_policy_table(cnf, vdom=vdom)
     pandas_save(rdf, outpath, filetype=filetype, compression=compression)
 
     return rdf
 
 
-def search_by_addr_1(ip_s, tbl_df):
+def search_by_addr_1(ip_s, tbl_df,
+                     addr_col_names=ADDR_COL_NAMES,
+                     addrs_col_names=ADDRS_COL_NAMES):
     """
     :param ip_s: A str represents an IP address
     :param tbl_df: :class:`pandas.DataFrame` object contains ip addresses
+    :param addr_col_names: A list of names of columns may have single IPs
+    :param addrs_col_names: A list of names of columns may have a set of IPs
     """
     if not utils.is_str(ip_s):
         raise ValueError("Expected a str but: {!r}".format(ip_s))
@@ -233,22 +312,29 @@ def search_by_addr_1(ip_s, tbl_df):
     if '/' not in ip_s:  # e.g. 192.168.122.1
         ip_s = ip_s + '/32'  # Normalize it.
 
-    def _ip_in_ipset(addrs):
+    def _ip_in_ipset(maybe_addrs):
         """Is given IP in the ipsets `addrs`?"""
-        return ip_s in addrs if addrs else False
+        if maybe_addrs.name in addrs_col_names:  # <>.name: column name
+            return ip_s in maybe_addrs
 
-    def _ip_in_net(addr):
+        return False
+
+    def _ip_in_net(maybe_addr):
         """Is given IP in the network `addrs`?"""
-        return netutils.is_ip_in_network(ip_s, addr) if addr else False
+        if maybe_addr.name in addr_col_names:
+            return netutils.is_ip_in_network(ip_s, maybe_addr)
+
+        return False
 
     try:
         ipsets = tbl_df[tbl_df.addrs.apply(_ip_in_ipset)]
-    except KeyError:
+        ipsets = tbl_df.apply(_ip_in_ipset)
+    except (KeyError, AttributeError):
         ipsets = DF_ZERO  # Not found rows have key 'addrs'.
 
     try:
         nets = tbl_df[tbl_df.addr.apply(_ip_in_net)]
-    except KeyError:
+    except (KeyError, AttributeError):
         nets = DF_ZERO  # Not found rows have key 'addr'.
 
     if ipsets.empty:
