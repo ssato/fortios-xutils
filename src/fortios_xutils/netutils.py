@@ -79,7 +79,10 @@ def is_ip_in_network(ip_s, net_s):
     :param net_s: A str represents a network address, e.g. 10.0.0.0/8
     :return: True if the network `net_s` contains the ip `ip_s`
     """
-    return ipaddress.ip_interface(ip_s) in ipaddress.ip_network(net_s)
+    try:
+        return ipaddress.ip_interface(ip_s) in ipaddress.ip_network(net_s)
+    except ValueError:  # Wrong type of ip_s and/or net_s were given.
+        return False
 
 
 @functools.lru_cache(maxsize=32)
