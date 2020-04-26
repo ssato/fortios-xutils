@@ -56,7 +56,13 @@ def prune_workdir(workdir):
     shutil.rmtree(workdir)
 
 
-class TestCaseWithWorkdir(unittest.TestCase):
+class TestCase(unittest.TestCase):
+    """Base class for test cases.
+    """
+    maxDiff = None
+
+
+class TestCaseWithWorkdir(TestCase):
     """Base class for test cases need working dir.
     """
     cleanup = True
