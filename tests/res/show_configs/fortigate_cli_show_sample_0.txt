@@ -93,7 +93,7 @@ config firewall address
     edit "port2 address"
         set uuid 54e6bec0-e097-51e9-4231-d0842123dd05
         set type interface-subnet
-        set subnet 10.88.210.73 255.255.255.0
+        set subnet 192.168.122.1 255.255.255.255
         set interface "port2"
     next
     edit "FCTEMS_ALL_FORTICLOUD_SERVERS"
