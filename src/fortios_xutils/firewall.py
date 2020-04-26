@@ -10,6 +10,7 @@ r"""Parse fortios' `show *configuration' outputs and generates various outputs.
 """
 from __future__ import absolute_import
 
+import itertools
 import os.path
 
 import pandas
@@ -312,37 +313,16 @@ def search_by_addr_1(ip_s, tbl_df,
     if '/' not in ip_s:  # e.g. 192.168.122.1
         ip_s = ip_s + '/32'  # Normalize it.
 
-    def _ip_in_ipset(maybe_addrs):
-        """Is given IP in the ipsets `addrs`?"""
-        if maybe_addrs.name in addrs_col_names:  # <>.name: column name
-            return ip_s in maybe_addrs
+    # FIXME: I don't know how to accomplish this in pandas.
+    rdf = tbl_df.fillna('').to_dict(orient="record")
+    as_itr = (x for x in rdf
+              if any(ip_s in x.get(k, []) for k in addrs_col_names))
 
-        return False
+    a_itr = (x for x in rdf
+             if any(netutils.is_ip_in_network(ip_s, x.get(k, ''))
+                    for k in addr_col_names if x.get(k)))
 
-    def _ip_in_net(maybe_addr):
-        """Is given IP in the network `addrs`?"""
-        if maybe_addr.name in addr_col_names:
-            return netutils.is_ip_in_network(ip_s, maybe_addr)
-
-        return False
-
-    try:
-        ipsets = tbl_df[tbl_df.addrs.apply(_ip_in_ipset)]
-        ipsets = tbl_df.apply(_ip_in_ipset)
-    except (KeyError, AttributeError):
-        ipsets = DF_ZERO  # Not found rows have key 'addrs'.
-
-    try:
-        nets = tbl_df[tbl_df.addr.apply(_ip_in_net)]
-    except (KeyError, AttributeError):
-        nets = DF_ZERO  # Not found rows have key 'addr'.
-
-    if ipsets.empty:
-        return nets
-
-    if nets.empty:
-        return ipsets
-
-    return pandas.merge(ipsets, nets, how="outer", on="uuid")
+    edits = list(set(x["edit"] for x in itertools.chain(as_itr, a_itr)))
+    return tbl_df[tbl_df["edit"].isin(edits)]
 
 # vim:sw=4:ts=4:et:
