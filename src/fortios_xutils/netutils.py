@@ -148,7 +148,7 @@ def ip_to_network(net_s):
 def is_ip_in_networks(ip_s, nets):
     """
     :param ip_s: A str gives an (unicast, host) IP address, e.g. 10.1.1.1
-    :param nets: A list of str-es give network addresses, e.g. 10.0.0.0/8
+    :param nets: A tuple of str-es give network addresses, e.g. 10.0.0.0/8
 
     :return: True if any of the network in `nets` contains the ip `ip_s`
     """
