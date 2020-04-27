@@ -28,7 +28,7 @@ def subnet_to_ip(addr, netmask):
     """
     Convert fortios 'subnet' (addr, netmask) to ipaddress object.
 
-    :return: [ipaddress.IPv4Interface object] or ipaddress.IPv4Network object
+    :return: <ip_address_with_prefix :: str>, e.g. 192.168.1.0/24, 10.0.0.1/32
     """
     if not utils.is_str(addr) or not utils.is_str(netmask):
         raise ValueError("Should be str but: {!r}/{!r}".format(addr, netmask))
@@ -38,12 +38,12 @@ def subnet_to_ip(addr, netmask):
                          "{!r}/{!r}".format(addr, netmask))
 
     if UNI_NETMASK_RE.match(netmask):  # Unicast (host) address
-        return [str(ipaddress.ip_interface(addr))]
+        return str(ipaddress.ip_interface(addr))
 
     try:
-        return ipaddress.ip_network('/'.join((addr, netmask)))
-    except ValueError:  # It might be host address with mask other than /32.
-        return [str(ipaddress.ip_interface(addr))]
+        return str(ipaddress.ip_network('/'.join((addr, netmask))))
+    except ValueError:  # It should be a host address with mask other than /32.
+        return str(ipaddress.ip_interface(addr))  # Ignore the original netmask
 
 
 @functools.lru_cache(maxsize=32)
