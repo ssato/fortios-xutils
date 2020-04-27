@@ -24,6 +24,20 @@ NET_MAX_PREFIX = 24
 
 
 @functools.lru_cache(maxsize=32)
+def normalize_host_ip(ip_s):
+    """
+    >>> normalize_host_ip("192.168.122.1")
+    '192.168.122.1/32'
+    >>> normalize_host_ip("192.168.122.1/32")
+    '192.168.122.1/32'
+    """
+    if '/' not in ip_s:  # e.g. 192.168.122.1
+        return ip_s + '/32'  # Normalize it.
+
+    return ip_s
+
+
+@functools.lru_cache(maxsize=32)
 def subnet_to_ip(addr, netmask):
     """
     Convert fortios 'subnet' (addr, netmask) to ipaddress object.
