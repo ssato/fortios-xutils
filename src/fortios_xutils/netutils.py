@@ -24,15 +24,17 @@ NET_MAX_PREFIX = 24
 
 
 @functools.lru_cache(maxsize=32)
-def normalize_host_ip(ip_s):
+def normalize_ip(ip_s, prefix="/32"):
     """
-    >>> normalize_host_ip("192.168.122.1")
+    >>> normalize_ip("192.168.122.1")
     '192.168.122.1/32'
-    >>> normalize_host_ip("192.168.122.1/32")
+    >>> normalize_ip("192.168.122.1/32")
     '192.168.122.1/32'
+    >>> normalize_ip("192.168.122.0/24")
+    '192.168.122.0/24'
     """
     if '/' not in ip_s:  # e.g. 192.168.122.1
-        return ip_s + '/32'  # Normalize it.
+        return ip_s + prefix  # Normalize it.
 
     return ip_s
 
