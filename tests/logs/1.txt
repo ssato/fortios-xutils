@@ -1,0 +1,172 @@
+ssato@x1-carbon-gen6% PYTHONPATH=src python3 src/fortios_xutils/cli.py firewall-save /tmp/y/fortigate-01/all.json                           ~/repos/public/github.com/ssato/fortios-xutils.git
+ssato@x1-carbon-gen6% ls /tmp/y/fortigate-01                                                                                                ~/repos/public/github.com/ssato/fortios-xutils.git
+all.json               firewall_addrgrp.json  firewall_service_category.json  firewall_service_group.json  out                 system_object-tagging.json    system_settings.json
+firewall_address.json  firewall_policy.json   firewall_service_custom.json    metadata.json                system_global.json  system_replacemsg-group.json
+ssato@x1-carbon-gen6% ls /tmp/y/fortigate-01/out                                                                                            ~/repos/public/github.com/ssato/fortios-xutils.git
+result.pickle.gz
+ssato@x1-carbon-gen6% jq '.' /tmp/y/fortigate-01/firewall_policy.json                                                                       ~/repos/public/github.com/ssato/fortios-xutils.git
+[
+  {
+    "edit": "1",
+    "name": "Test1",
+    "uuid": "2372eb5c-832b-51ea-dbda-8dea47646393",
+    "srcintf": "port2",
+    "dstintf": "port1",
+    "srcaddr": "all",
+    "dstaddr": "all",
+    "action": "accept",
+    "schedule": "always",
+    "service": "ALL",
+    "inspection-mode": "proxy",
+    "nat": "enable"
+  },
+  {
+    "edit": "10",
+    "name": "Monitor_Servers_01",
+    "uuid": "6b10145a-775f-4bcf-bc1b-5caef7e78d5c",
+    "srcintf": "port1",
+    "srcaddr": [
+      "host_192.168.122.1",
+      "iprange_192.168.2.1..10"
+    ],
+    "dstaddr": [
+      "host_192.168.3.1",
+      "host_192.168.3.3",
+      "host_192.168.3.5"
+    ],
+    "action": "accept",
+    "schedule": "always",
+    "service": [
+      "SNMP",
+      "ALL_ICMP",
+      "HTTPS",
+      "HTTP"
+    ],
+    "comments": "2020/04/22 Demo"
+  },
+  {
+    "edit": "20",
+    "name": "Monitor_Servers_02",
+    "uuid": "3da73baa-dacb-48cb-852c-c4be245b4609",
+    "srcintf": "port1",
+    "srcaddr": "host_192.168.122.1",
+    "dstaddr": "network_192.168.122.0/24",
+    "action": "accept",
+    "schedule": "always",
+    "service": [
+      "HTTPS",
+      "HTTP"
+    ]
+  }
+]
+ssato@x1-carbon-gen6% PYTHONPATH=src python3 src/fortios_xutils/cli.py firewall-policy-search --help                                        ~/repos/public/github.com/ssato/fortios-xutils.git
+Usage: cli.py firewall-policy-search [OPTIONS] FILEPATH
+
+  Search firewall policy by IP address
+
+  :param filepath:     Path of the json file contains parsed results of
+  fortios' "show     *configuration" outputs, or pandas.DataFrame data file
+  :param ip_s: IP address string to search :param pdf: True if the file
+  `filepath` is a pandas.DataFrame data
+
+Options:
+  --pdf TEXT     File is the pandas.DataFrame data file
+  -i, --ip TEXT  Specify an IP address to search
+  --help         Show this message and exit.
+ssato@x1-carbon-gen6% PYTHONPATH=src python3 src/fortios_xutils/cli.py firewall-policy-search -i 192.168.2.3 /tmp/y/fortigate-01/all.json   ~/repos/public/github.com/ssato/fortios-xutils.git
+[
+  {
+    "edit": "10",
+    "name": "Monitor_Servers_01",
+    "uuid": "6b10145a-775f-4bcf-bc1b-5caef7e78d5c",
+    "srcintf": "port1",
+    "dstintf": "",
+    "srcaddr": [
+      "host_192.168.122.1",
+      "iprange_192.168.2.1..10"
+    ],
+    "dstaddr": [
+      "host_192.168.3.1",
+      "host_192.168.3.3",
+      "host_192.168.3.5"
+    ],
+    "action": "accept",
+    "schedule": "always",
+    "service": [
+      "SNMP",
+      "ALL_ICMP",
+      "HTTPS",
+      "HTTP"
+    ],
+    "inspection-mode": "",
+    "nat": "",
+    "srcaddrs": [
+      "192.168.122.1/32",
+      "192.168.2.1/32",
+      "192.168.2.10/32",
+      "192.168.2.2/32",
+      "192.168.2.3/32",
+      "192.168.2.4/32",
+      "192.168.2.5/32",
+      "192.168.2.6/32",
+      "192.168.2.7/32",
+      "192.168.2.8/32",
+      "192.168.2.9/32"
+    ],
+    "dstaddrs": [
+      "192.168.3.1/32",
+      "192.168.3.3/32",
+      "192.168.3.5/32"
+    ],
+    "comments": "2020/04/22 Demo"
+  }
+]
+ssato@x1-carbon-gen6% PYTHONPATH=src python3 src/fortios_xutils/cli.py firewall-policy-search -i 192.168.2.3 /tmp/y/fortigate-01/out/result.pickle.gz
+[
+  {
+    "edit": "10",
+    "name": "Monitor_Servers_01",
+    "uuid": "6b10145a-775f-4bcf-bc1b-5caef7e78d5c",
+    "srcintf": "port1",
+    "dstintf": "",
+    "srcaddr": [
+      "host_192.168.122.1",
+      "iprange_192.168.2.1..10"
+    ],
+    "dstaddr": [
+      "host_192.168.3.1",
+      "host_192.168.3.3",
+      "host_192.168.3.5"
+    ],
+    "action": "accept",
+    "schedule": "always",
+    "service": [
+      "SNMP",
+      "ALL_ICMP",
+      "HTTPS",
+      "HTTP"
+    ],
+    "inspection-mode": "",
+    "nat": "",
+    "srcaddrs": [
+      "192.168.122.1/32",
+      "192.168.2.1/32",
+      "192.168.2.10/32",
+      "192.168.2.2/32",
+      "192.168.2.3/32",
+      "192.168.2.4/32",
+      "192.168.2.5/32",
+      "192.168.2.6/32",
+      "192.168.2.7/32",
+      "192.168.2.8/32",
+      "192.168.2.9/32"
+    ],
+    "dstaddrs": [
+      "192.168.3.1/32",
+      "192.168.3.3/32",
+      "192.168.3.5/32"
+    ],
+    "comments": "2020/04/22 Demo"
+  }
+]
+ssato@x1-carbon-gen6%                                                                                                                       ~/repos/public/github.com/ssato/fortios-xutils.git
