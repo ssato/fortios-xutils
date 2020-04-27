@@ -78,7 +78,7 @@ def search(filepaths, path_exp):
               default=None)
 def firewall_save(filepath, outpath):
     """
-    Make and save firewall address table (:class:`pandas.DataFrame` object).
+    Make and save firewall policy table (:class:`pandas.DataFrame` object).
 
     :param filepath: Path of the input fortios' "show *configuration" outpath
     :param outpath: Path of the file to save data
@@ -88,8 +88,8 @@ def firewall_save(filepath, outpath):
                                "result.pickle.gz")
 
     cnf = parser.load(filepath)
-    firewall.make_and_save_firewall_address_table(cnf, outpath,
-                                                  compression="gzip")
+    firewall.make_and_save_firewall_policy_table(cnf, outpath,
+                                                 compression="gzip")
 
 
 @click.command()
@@ -124,7 +124,7 @@ def firewall_policy_search(filepath, pdf, ip_s):
 
 @click.group()
 @click.option("-v", "--verbose", count=True, default=0)
-def main(verbose):
+def main(verbose=0):
     """CLI frontend entrypoint.
     """
     verbose = min(verbose, 2)
