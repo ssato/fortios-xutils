@@ -51,7 +51,7 @@ def subnet_to_ip(addr, netmask):
 
     if not IPV4_IP_RE.match(addr) or not IPV4_IP_RE.match(netmask):
         raise ValueError("Should be address but: "
-                         "{!r}/{!r}".format(addr, netmask))
+                         "{!s}/{!s}".format(addr, netmask))
 
     if UNI_NETMASK_RE.match(netmask):  # Unicast (host) address
         return str(ipaddress.ip_interface(addr))
@@ -72,7 +72,20 @@ def iprange_to_ipsets(start_ip, end_ip, prefix=32):
     >>> iprange_to_ipsets("192.168.122.1", "192.168.122.3", 24)
     ['192.168.122.1/24', '192.168.122.2/24', '192.168.122.3/24']
     """
-    return ["{!s}/{}".format(ip, prefix)
+    if not utils.is_str(start_ip) or not utils.is_str(end_ip):
+        raise ValueError("Should be str but: {!r}/{!r}".format(start_ip,
+                                                               end_ip))
+
+    if not IPV4_IP_RE.match(start_ip) or not IPV4_IP_RE.match(end_ip):
+        raise ValueError("Should be address but: "
+                         "{}/{}".format(start_ip, end_ip))
+
+    # start_ip and end_ip should be in different networks.
+    if start_ip.split('.')[0] != end_ip.split('.')[0]:
+        raise ValueError("Looks in different networks: "
+                         "{}/{}".format(start_ip, end_ip))
+
+    return ["{!s}/{!s}".format(ip, prefix)
             for ip in netaddr.iter_iprange(start_ip, end_ip)]
 
 
@@ -89,6 +102,7 @@ def is_network_address_object(obj):
     return isinstance(obj, (ipaddress.IPv4Network, ipaddress.IPv6Network))
 
 
+@functools.lru_cache(maxsize=32)
 def is_ip_in_network(ip_s, net_s):
     """
     :param ip_s: A str represents an (unicast, host) IP address, e.g. 10.1.1.1
@@ -130,6 +144,27 @@ def to_networks_or_interfaces_itr(addrs):
     """
     for addr in addrs:
         yield to_network_or_interface(addr)
+
+
+def is_ip_in_addrs(ip_s, addrs):
+    """
+    :param ip_s: A str represents an (unicast, host) IP address, e.g. 10.1.1.1
+    :param addrs:
+        A list of str represents a host or a network address, e.g. 10.0.0.0/8,
+        192.168.122.1/32
+
+    :return: True if the network `net_s` contains the ip `ip_s`
+    """
+    if not addrs:
+        return False
+
+    ipa = normalize_ip(ip_s)
+
+    if ipa in addrs:  # Try to find exact match case first.
+        return True
+
+    ipi = ipaddress.ip_interface(ipa)
+    return any(ipi in n for n in (ipaddress.ip_network(a) for a in addrs))
 
 
 @functools.lru_cache(maxsize=32)
