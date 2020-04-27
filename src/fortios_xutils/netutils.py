@@ -40,6 +40,22 @@ def normalize_ip(ip_s, prefix="/32"):
 
 
 @functools.lru_cache(maxsize=32)
+def is_network_address(addr, sep='/'):
+    """
+    :param addr: IP address string with prefix, e.g. 192.168.1.0/24
+
+    >>> is_network_address("10.0.0.1/32")
+    False
+    >>> is_network_address("10.0.0.0/8")
+    True
+    """
+    if sep in addr:
+        return addr.split(sep)[-1] != '32'
+
+    return ipaddress.ip_network(addr).num_addresses > 1
+
+
+@functools.lru_cache(maxsize=32)
 def subnet_to_ip(addr, netmask):
     """
     Convert fortios 'subnet' (addr, netmask) to ipaddress object.
@@ -111,6 +127,34 @@ def is_ip_in_network(ip_s, net_s):
     """
     try:
         return ipaddress.ip_interface(ip_s) in ipaddress.ip_network(net_s)
+    except ValueError:  # Wrong type of ip_s and/or net_s were given.
+        return False
+
+
+@functools.lru_cache(maxsize=32)
+def ip_to_network(net_s):
+    """
+    Convert a str `net_s` to ipaddress.IPv*Network object.
+    """
+    try:
+        return ipaddress.ip_network(net_s)
+    except ValueError:
+        pass
+
+    return []   # Mzero for (ipaddress.IP*, in operator)
+
+
+@functools.lru_cache(maxsize=32)
+def is_ip_in_networks(ip_s, nets):
+    """
+    :param ip_s: A str gives an (unicast, host) IP address, e.g. 10.1.1.1
+    :param nets: A list of str-es give network addresses, e.g. 10.0.0.0/8
+
+    :return: True if any of the network in `nets` contains the ip `ip_s`
+    """
+    try:
+        ipi = ipaddress.ip_interface(ip_s)
+        return any(ipi in ipaddress.ip_network(n) for n in nets)
     except ValueError:  # Wrong type of ip_s and/or net_s were given.
         return False
 
