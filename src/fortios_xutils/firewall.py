@@ -25,6 +25,8 @@ DF_ZERO = pandas.DataFrame()
 
 ADDRS_COL_NAMES = ("addrs", "srcaddrs", "dstaddrs")
 
+COMPRESSION_MAPS = dict(gz="gzip", bz2="bz2", zip='zip', xz='xz')
+
 
 def df_by_query(path_exp, data, normalize_fn=None,
                 has_vdoms_=False, vdom=None):
@@ -244,12 +246,13 @@ def guess_filetype(filepath, compression=None):
     :param filetype: File type of `filepath`
     :param compression: Compression type
     """
-    if compression:
-        fext = os.path.splitext(os.path.splitext(filepath)[0])[-1]
-    else:
-        fext = os.path.splitext(filepath)[-1]
+    comp_exts = COMPRESSION_MAPS.keys()
+    maybe_ext = os.path.splitext(filepath)[-1]
 
-    return fext.replace('.', '')
+    if compression or maybe_ext.replace('.', '') in comp_exts:
+        maybe_ext = os.path.splitext(os.path.splitext(filepath)[0])[-1]
+
+    return maybe_ext.replace('.', '')
 
 
 def pandas_save(rdf, outpath, filetype=None, compression=None):
