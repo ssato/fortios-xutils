@@ -94,8 +94,9 @@ class TestCases_40(TestCasesWithConfigs):
             )
             self.assertFalse(rdf.empty)
             self.assertTrue("SSLVPN_TUNNEL_ADDR1" in rdf["edit"].values)
-            self.assertTrue("192.168.1.0/24" in rdf["addr"].values)
             self.assertTrue("G Suite" in rdf["edit"].values)
+            self.assertTrue(any("192.168.1.0/24" in addrs
+                                for addrs in rdf["addrs"].values))
             self.assertTrue(any("192.168.3.3/32" in addrs
                                 for addrs in rdf["addrs"].values))
 
@@ -105,21 +106,34 @@ class TestCases_50(C.unittest.TestCase):
     def setUp(self):
         self.cpaths = C.list_res_files("show_configs", "*.txt")
         self.cnfs = [P.parse_show_config(p) for p in self.cpaths]
-        self.fdfs = [TT.make_firewall_address_table(c) for c in self.cnfs]
+        self.fdfs = [
+            TT.make_firewall_address_table(c, has_vdoms_=P.has_vdom(c))
+            for c in self.cnfs
+        ]
         self.pdfs = [TT.make_firewall_policy_table(c) for c in self.cnfs]
 
     def test_10_search_by_addr_1__fa_not_found(self):
-        C.skip_test()
         for fdf in self.fdfs:
-            rdf = TT.search_by_addr_1("127.0.0.1", fdf)
-            self.assertTrue(rdf.empty)
+            res = TT.search_by_addr_1("127.0.0.1", fdf)
+            self.assertFalse(res)
 
-    def test_20_search_by_addr_1__fa_found_1(self):
-        C.skip_test()
+    def test_12_search_by_addr_1__fa_found_1(self):
         for fdf in self.fdfs:
-            rdf = TT.search_by_addr_1("192.168.5.201", fdf)
-            self.assertFalse(rdf.empty)
-            self.assertEqual(len(rdf), 1)
-            self.assertEqual(list(rdf["edit"])[0], "SSLVPN_TUNNEL_ADDR1")
+            res = TT.search_by_addr_1("192.168.5.201", fdf)
+            self.assertTrue(res)
+            self.assertEqual(len(res), 1)
+            self.assertEqual(res[0]["edit"], "SSLVPN_TUNNEL_ADDR1")
+
+    def test_20_search_by_addr_1__fp_not_found(self):
+        for rdf in self.pdfs:
+            res = TT.search_by_addr_1("127.0.0.1", rdf)
+            self.assertFalse(res)
+
+    def test_22_search_by_addr_1__fp_found_1(self):
+        for rdf in self.pdfs:
+            res = TT.search_by_addr_1("192.168.2.1", rdf)
+            self.assertTrue(res)
+            self.assertEqual(len(res), 1)
+            self.assertEqual(res[0]["name"], "Monitor_Servers_01")
 
 # vim:sw=4:ts=4:et:
