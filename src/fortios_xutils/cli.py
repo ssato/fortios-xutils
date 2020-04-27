@@ -100,26 +100,26 @@ def firewall_save(filepath, outpath):
               help="Specify an IP address to search")
 def firewall_policy_search(filepath, pdf, ip_s):
     """
-    Make and save firewall address table (:class:`pandas.DataFrame` object).
+    Search firewall policy by IP address
 
     :param filepath:
         Path of the json file contains parsed results of fortios' "show
         *configuration" outputs, or pandas.DataFrame data file
     :param ip_s: IP address string to search
-    :param pd: True if the file `filepath` is a pandas.DataFrame data
+    :param pdf: True if the file `filepath` is a pandas.DataFrame data
     """
     if pdf:
         rdf = firewall.pandas_load(filepath, compression="gzip")
     else:
         cnf = parser.load(filepath)
-        rdf = firewall.make_firewall_address_table(cnf)
+        rdf = firewall.make_firewall_policy_table(cnf)
 
-    rdf = firewall.search_by_addr_1(ip_s, rdf)
+    res = firewall.search_by_addr_1(ip_s, rdf)
 
     # Dirty hack to pretty print JSON string as .to_json in pandas < 1.0.x
     # lacks of 'indent' support.
     aopts = dict(ac_parser="json", indent=2)
-    print(anyconfig.dumps(anyconfig.loads(rdf.to_json(), **aopts), **aopts))
+    print(anyconfig.dumps(res, **aopts))
 
 
 @click.group()
