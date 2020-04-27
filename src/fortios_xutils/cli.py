@@ -80,7 +80,9 @@ def firewall_save(filepath, outpath):
     """
     Make and save firewall policy table (:class:`pandas.DataFrame` object).
 
-    :param filepath: Path of the input fortios' "show *configuration" outpath
+    :param filepath:
+        Path of the input JSON file which is the parsed results of fortios'
+        "show *configuration" outpath
     :param outpath: Path of the file to save data
     """
     if not outpath:
@@ -94,30 +96,26 @@ def firewall_save(filepath, outpath):
 
 @click.command()
 @click.argument("filepath", type=click.Path(exists=True, readable=True))
-@click.option("--pdf", help="File is the pandas.DataFrame data file",
-              default=False)
 @click.option("-i", "--ip", "ip_s",
               help="Specify an IP address to search")
-def firewall_policy_search(filepath, pdf, ip_s):
+def firewall_policy_search(filepath, ip_s):
     """
     Search firewall policy by IP address
 
     :param filepath:
         Path of the json file contains parsed results of fortios' "show
-        *configuration" outputs, or pandas.DataFrame data file
+        *configuration" outputs, or pandas.DataFrame data file, or the
+        serialized pandas.DataFrame object contains firewall policy table
     :param ip_s: IP address string to search
-    :param pdf: True if the file `filepath` is a pandas.DataFrame data
     """
-    if pdf:
-        rdf = firewall.pandas_load(filepath, compression="gzip")
-    else:
+    if filepath.endswith("json"):
         cnf = parser.load(filepath)
         rdf = firewall.make_firewall_policy_table(cnf)
+    else:
+        rdf = firewall.pandas_load(filepath, compression="gzip")
 
     res = firewall.search_by_addr_1(ip_s, rdf)
 
-    # Dirty hack to pretty print JSON string as .to_json in pandas < 1.0.x
-    # lacks of 'indent' support.
     aopts = dict(ac_parser="json", indent=2)
     print(anyconfig.dumps(res, **aopts))
 
