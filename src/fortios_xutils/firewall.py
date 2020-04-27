@@ -10,6 +10,7 @@ r"""Parse fortios' `show *configuration' outputs and generates various outputs.
 """
 from __future__ import absolute_import
 
+import functools
 import itertools
 import os.path
 
@@ -22,7 +23,6 @@ ADDR_TYPES = (IP_SET, IP_NETWORK) = ("ipset", "network")
 
 DF_ZERO = pandas.DataFrame()
 
-ADDR_COL_NAMES = ("addr", "srcaddr", "dstaddr")
 ADDRS_COL_NAMES = ("addrs", "srcaddrs", "dstaddrs")
 
 
@@ -61,12 +61,6 @@ def normalize_fa(fa_dict):
        "type": "wildcard-fqdn",
        "wildcard-fqdn": "*.google.com"}   # or "fqdn": "www.example.com"
 
-    - ipset:
-
-      {"edit": <edit_id :: int>, "uuid": ...,
-       "type": "ipset",
-       "addrs": ['0.0.0.0/32']}
-
     - iprange:
 
       {"edit": <edit_id :: int>, "uuid": ...,
@@ -74,7 +68,7 @@ def normalize_fa(fa_dict):
        "start-ip": <ip_address>,
        "end-ip": <ip_address>}
 
-    - unicast (host) ip address or ip network address
+    - unicast (host) or network address
 
       {"edit": <edit_id :: int>, "uuid": ...,
        "associated-interface": <interface_name>,  # 'system interface' list
@@ -83,24 +77,19 @@ def normalize_fa(fa_dict):
     if "start-ip" in fa_dict:  # iprange
         ipset = netutils.iprange_to_ipsets(fa_dict["start-ip"],
                                            fa_dict["end-ip"])
-        fa_dict["type"] = IP_SET
-        fa_dict["addrs"] = [str(a) for a in ipset]  # expanded ipset
-        fa_dict["addr"] = False
+        fa_dict["addr_type"] = IP_SET
+        fa_dict["addrs"] = ipset  # or? ' '.join(ipset)
 
     elif "subnet" in fa_dict:  # ip address or ip network
-        obj = netutils.subnet_to_ip(*fa_dict["subnet"])
-
-        if netutils.is_network_address_object(obj):
-            fa_dict["type"] = IP_NETWORK
-            fa_dict["addr"] = str(obj)
-            fa_dict["addrs"] = []
+        ipa = netutils.subnet_to_ip(*fa_dict["subnet"])  # :: str
+        if netutils.is_network_address(ipa):
+            fa_dict["addr_type"] = IP_NETWORK
         else:
             fa_dict["type"] = IP_SET
-            fa_dict["addrs"] = [str(a) for a in obj]
-            fa_dict["addr"] = False
+
+        fa_dict["addrs"] = [ipa]
 
     else:
-        fa_dict["addr"] = False
         fa_dict["addrs"] = []
 
     return fa_dict
@@ -164,6 +153,53 @@ def make_firewall_address_table(cnf, has_vdoms_=False, vdom=None):
     return pandas.concat([df_fa, df_diff], sort=False)
 
 
+def get_firewall_address_by_edit(edit, df_fa=DF_ZERO):
+    """
+    :param edit: A str gives an edit ID
+    :param df_fa: A :class:`pandas.DataFrame` object holds firewall addresses
+
+    :return: A list of str gives IP addresses with prefix
+    """
+    return sorted(itertools.chain.from_iterable(
+        e["addrs"] for e
+        in df_fa[df_fa["edit"] == edit].fillna('').to_dict(orient="record")
+        if e.get("addrs")
+    ))
+
+
+def get_firewall_address_by_edits(edits, df_fa=DF_ZERO):
+    """
+    :param edits: A edit or a list of edits
+    :param df_fa: A :class:`pandas.DataFrame` object holds firewall addresses
+
+    :return: A list of str gives IP addresses with prefix
+    """
+    if utils.is_str(edits):
+        return get_firewall_address_by_edit(edits, df_fa)
+
+    return sorted(itertools.chain.from_iterable(
+        get_firewall_address_by_edit(e, df_fa=df_fa) for e in edits
+    ))
+
+
+def resolv_src_and_dst_in_fp(fp_dict, df_fa=DF_ZERO):
+    """
+    :param fp_dict: A mapping object represents a firewall policy
+    :param df_fa: A :class:`pandas.DataFrame` object holds firewall addresses
+    """
+    fnc = functools.partial(get_firewall_address_by_edits, df_fa=df_fa)
+
+    srcaddr = fp_dict.get("srcaddr", False)
+    if srcaddr:
+        fp_dict["srcaddrs"] = fnc(srcaddr)
+
+    dstaddr = fp_dict.get("dstaddr", False)
+    if dstaddr:
+        fp_dict["dstaddrs"] = fnc(dstaddr)
+
+    return fp_dict
+
+
 def make_firewall_policy_table_1(cnf, df_fa, has_vdoms_=False, vdom=None):
     """
     :param cnf: A mapping object contains firewall configurations
@@ -176,41 +212,13 @@ def make_firewall_policy_table_1(cnf, df_fa, has_vdoms_=False, vdom=None):
     fa_keys = ["edit", "addr", "addrs", "comment"]  # TBD
     df_fa = df_fa.drop(columns=[k for k in df_fa.columns if k not in fa_keys])
 
+    fnc = functools.partial(resolv_src_and_dst_in_fp, df_fa=df_fa)
+
     df_fp = df_by_query("configs[?config==`firewall policy`].edits[]",
-                        cnf, normalize_fn=None,
-                        has_vdoms_=has_vdoms_, vdom=vdom
-                        ).explode(
-                            "srcaddr"
-                        ).explode(
-                            "dstaddr"
-                        ).reset_index(drop=True)
+                        cnf, normalize_fn=fnc,
+                        has_vdoms_=has_vdoms_, vdom=vdom)
 
-    # TBD: "old_srcaddr", "old_dstaddr"
-    fp_keys = ["edit", "name", "uuid", "srcintf", "dstintf",
-               "srcaddr", "srcaddrs", "dstaddr", "dstaddrs",
-               "action", "schedule", "service", "inspection-mode", "nat",
-               "comments", "comment", "fa_edit"]
-    df_src = pandas.merge(
-        df_fp, df_fa, left_on="srcaddr", right_on="edit",
-        suffixes=('', '_r'), how="left"
-    ).rename(
-        columns=dict(
-            srcaddr="old_srcaddr", addr="srcaddr", addrs="srcaddrs",
-            edit_r="fa_edit"
-        )
-    ).reindex(columns=fp_keys)
-
-    df_dst = pandas.merge(
-        df_fp, df_fa, left_on="dstaddr", right_on="edit",
-        suffixes=('', '_r'), how="left"
-    ).rename(
-        columns=dict(
-            dstaddr="old_dstaddr", addr="dstaddr", addrs="dstaddrs",
-            edit_r="fa_edit"
-        )
-    ).reindex(columns=fp_keys)
-
-    return pandas.concat([df_src, df_dst], sort=False)
+    return df_fp
 
 
 def make_firewall_policy_table(cnf, vdom=None):
@@ -298,31 +306,26 @@ def make_and_save_firewall_policy_table(cnf, outpath, vdom=None,
     return rdf
 
 
-def search_by_addr_1(ip_s, tbl_df,
-                     addr_col_names=ADDR_COL_NAMES,
-                     addrs_col_names=ADDRS_COL_NAMES):
+def search_by_addr_1(ip_s, tbl_df, addrs_cols=ADDRS_COL_NAMES):
     """
     :param ip_s: A str represents an IP address
-    :param tbl_df: :class:`pandas.DataFrame` object contains ip addresses
-    :param addr_col_names: A list of names of columns may have single IPs
-    :param addrs_col_names: A list of names of columns may have a set of IPs
+    :param tbl_df:
+        A :class:`pandas.DataFrame` object contains ip addresses in the columns
+        have one or some of `addrs_cols`.
+    :param addrs_cols:
+        A list of names of columns may have a set of ip addresses
     """
     if not utils.is_str(ip_s):
         raise ValueError("Expected a str but: {!r}".format(ip_s))
 
-    if '/' not in ip_s:  # e.g. 192.168.122.1
-        ip_s = ip_s + '/32'  # Normalize it.
+    ip_s = netutils.normalize_ip(ip_s)
 
-    # FIXME: I don't know how to accomplish this in pandas.
+    # TODO: I don't know how to accomplish this with pandas.DataFrame.
     rdf = tbl_df.fillna('').to_dict(orient="record")
-    as_itr = (x for x in rdf
-              if any(ip_s in x.get(k, []) for k in addrs_col_names))
+    res = (x for x in rdf
+           if any(netutils.is_ip_in_networks(ip_s, tuple(x.get(k, [])))
+                  for k in addrs_cols))
 
-    a_itr = (x for x in rdf
-             if any(netutils.is_ip_in_network(ip_s, x.get(k, ''))
-                    for k in addr_col_names if x.get(k)))
-
-    edits = list(set(x["edit"] for x in itertools.chain(as_itr, a_itr)))
-    return tbl_df[tbl_df["edit"].isin(edits)]
+    return list(res)
 
 # vim:sw=4:ts=4:et:
