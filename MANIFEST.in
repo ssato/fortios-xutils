@@ -1,9 +1,12 @@
+include *.txt
 include LICENSE.MIT
 include MANIFEST.in
 include NEWS
 include README.*
 include pkg/*
 include setup.*
-include requirements.*
+include tox.ini
+include tests/res/*
+include tests/res/*/*
 recursive-include src *.py
-recursive-include tests *.py *.txt *.json
+recursive-include tests *.py *.bats *.txt
