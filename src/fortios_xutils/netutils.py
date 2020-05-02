@@ -247,6 +247,20 @@ def select_networks_from_addrs_itr(*addrs):
             yield addr
 
 
+def _is_subnet_of(net1, net2):
+    """An wrapper around ipaddress.IP*Network.subnet_of.
+
+    >>> net1 = ipaddress.ip_network("192.168.122.0/24")
+    >>> net1 = ipaddress.ip_network("192.168.122.2/28")
+    """
+    try:
+        return net1.subnet_of(net2)
+    except AttributeError:  # ipaddress in py36 does not have the above.
+        return (net1 == net2 or
+                (net2.network_address <= net1.network_address and
+                 net2.broadcast_address >= net1.broadcast_address))
+
+
 def summarize_networks(*net_addrs, max_prefix=None):
     """
     Degenerate and summarize given network addresses. For example,
@@ -279,7 +293,7 @@ def summarize_networks(*net_addrs, max_prefix=None):
     # try to find the "smallest" (broadest) network.
     for prefix in sorted(range(1, max_prefix + 1), reverse=True):
         cnet = nets[0].supernet(new_prefix=prefix)
-        if all(n.subnet_of(cnet) for n in nets):
+        if all(_is_subnet_of(n, cnet) for n in nets):
             return cnet
 
     return None
