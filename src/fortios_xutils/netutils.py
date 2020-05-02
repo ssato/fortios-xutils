@@ -251,7 +251,14 @@ def _is_subnet_of(net1, net2):
     """An wrapper around ipaddress.IP*Network.subnet_of.
 
     >>> net1 = ipaddress.ip_network("192.168.122.0/24")
-    >>> net1 = ipaddress.ip_network("192.168.122.2/28")
+    >>> net2 = ipaddress.ip_network("192.168.0.0/16")
+    >>> net3 = ipaddress.ip_network("192.168.1.0/24")
+    >>> _is_subnet_of(net1, net1)
+    True
+    >>> _is_subnet_of(net1, net2)
+    True
+    >>> _is_subnet_of(net1, net3)
+    False
     """
     try:
         return net1.subnet_of(net2)
