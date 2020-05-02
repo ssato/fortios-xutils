@@ -1,4 +1,4 @@
-r"""setup.py to build package.
+"""setup.py to build packages.
 """
 from __future__ import absolute_import
 
@@ -12,9 +12,10 @@ import setuptools.command.bdist_rpm
 VERSION = False
 for pyf in glob.glob("src/*/__init__.py"):
     matches = [m.groups() for m in (re.match(r'__version__ = "([0-9.]+)"', l)
-                                    for l in open(pyf).readlines()) if m]
+                                    for l in open(pyf)) if m]
     if matches:
         VERSION = matches[0][0]
+        break
 
 assert VERSION
 
@@ -22,8 +23,7 @@ assert VERSION
 RELEASE = "1%{?dist}"
 if os.environ.get("_SNAPSHOT_BUILD", None) is not None:
     import datetime
-    RELEASE = RELEASE.replace('1',
-                              datetime.datetime.now().strftime("%Y%m%d"))
+    RELEASE = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 
 def _replace(line):
@@ -48,9 +48,11 @@ class bdist_rpm(setuptools.command.bdist_rpm.bdist_rpm):
                              "pkg/package.spec.in")
 
     def _make_spec_file(self):
-        return [_replace(l.rstrip()) for l in open(self.spec_tmpl).readlines()]
+        return [_replace(l.rstrip()) for l in open(self.spec_tmpl)]
 
 
-setuptools.setup(version=VERSION, cmdclass=dict(bdist_rpm=bdist_rpm))
+setuptools.setup(version=VERSION,
+                 package_dir={'': 'src'},
+                 cmdclass=dict(bdist_rpm=bdist_rpm))
 
 # vim:sw=4:ts=4:et:
