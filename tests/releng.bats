@@ -5,7 +5,7 @@
 #
 CURDIR=$(pwd)
 
-PKG_NAME=${PKG_NAME:-$(sed -n 's/name = //p' ${BATS_TEST_DIRNAME:?}/../setup.cfg)}
+PKG_NAME=${PKG_NAME:-$(sed -n 's/name = //p' ${BATS_TEST_DIRNAME:?}/../setup.cfg | sed 's/_/-/g')}
 GIT_URL=${GIT_URL:-https://github.com/ssato/${PKG_NAME}}
 
 RPM_BUILD_DIST=fedora-30-x86_64
