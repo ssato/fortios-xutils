@@ -4,11 +4,11 @@ python:
 #    - 2.7
     - 3.6
     - 3.7
-# Don't run tests Until "AttributeError: jFlakesChecker' object has no
-# attribute 'CONSTANT'" error is resolved:
-#    - 3.8
+    - 3.8
 # see: http://docs.travis-ci.com/user/caching/#pip-cache
 cache: pip
+# see: http://docs.travis-ci.com/user/migrating-from-legacy/
+sudo: false
 install:
     - pip install tox-travis
 script:
