@@ -45,7 +45,7 @@ def network_from_ipa(ipa, netmask=None):
     >>> network_from_ipa("192.168.1.1")
     '192.168.1.1/32'
     >>> network_from_ipa("192.168.1.0", "255.255.255.0")
-    '192.168.1.1/24'
+    '192.168.1.0/24'
     """
     if not netmask:
         netmask = '32'  # prefix for the network has an IP in it.
