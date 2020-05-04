@@ -326,7 +326,7 @@ def search_by_addr_1(ip_s, tbl_df, addrs_cols=ADDRS_COL_NAMES):
     # TODO: I don't know how to accomplish this with pandas.DataFrame.
     rdf = tbl_df.fillna('').to_dict(orient="record")
     res = (x for x in rdf
-           if any(netutils.is_ip_in_networks(ip_s, tuple(x.get(k, [])))
+           if any(netutils.is_ip_in_addrs(ip_s, x.get(k, []))
                   for k in addrs_cols))
 
     return list(res)
