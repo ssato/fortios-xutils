@@ -72,9 +72,11 @@ def make_net_node(net):
     """
     :param net: A ipaddress.IPv*Network object
     :return: A mapping object represents the network node
+
+    :return: A mapping object will be used in D3.js
     """
     net_s = str(net)
-    return dict(id=net_s, type="network", addrs=[net_s])
+    return dict(id=net_s, name=net_s, type="network", addrs=[net_s])
 
 
 def make_edge_node(nodes, weight, distance):
@@ -82,9 +84,13 @@ def make_edge_node(nodes, weight, distance):
     :param nodes: A tuple of address strings
     :param weight: An int gives edge's weight
     :param distance: 'Distance' between edges
+
+    :return: A mapping object will be used in D3.js
     """
+    name = "{}_{}".format(*nodes)
+
     return dict(type="edge", weight=weight, distance=distance,
-                nodes=nodes, id="{}_{}".format(*nodes))
+                id=name, name=name, source=nodes[0], target=nodes[1])
 
 
 def _node_and_edges_from_fa_networks_itr(inets, nets):
@@ -105,7 +111,7 @@ def _node_and_edges_from_fa_networks_itr(inets, nets):
         weight = 10 / distance
 
         yield make_net_node(net)
-        yield make_edge_node((net, inet), weight, distance)
+        yield make_edge_node((inet, net), weight, distance)
 
 
 def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
@@ -173,7 +179,7 @@ def make_ans_save_networks_from_config_file(filepath, outpath=None,
         outpath = os.path.join(os.path.dirname(filepath), NET_FILENAME)
 
     metadata = dict(input=filepath, prefix=prefix, timestamp=utils.timestamp())
-    res = dict(metadata=metadata, nodes=nodes, edges=edges)
+    res = dict(metadata=metadata, nodes=nodes, links=edges)
 
     utils.ensure_dir_exists(outpath)
     anyconfig.dump(res, outpath)
