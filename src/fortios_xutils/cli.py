@@ -16,7 +16,7 @@ import os.path
 import anyconfig
 import click
 
-from fortios_xutils import parser, firewall
+from fortios_xutils import parser, firewall, network
 
 
 LOG = logging.getLogger("fortios_xutils")
@@ -69,6 +69,26 @@ def search(filepaths, path_exp):
     else:
         res = [dict(filepath=t[0], results=t[1]) for t in fp_res_pairs]
         print(anyconfig.dumps(res, ac_parser="json", indent=2))
+
+
+@click.command()
+@click.argument("filepath", type=click.Path(exists=True, readable=True))
+@click.option("-o", "--outpath",
+              help="Path of the outpath file to save network JSON data",
+              default=None)
+@click.option("-P", "--prefix", help="Max network prefix [24]", default=24)
+def network_collect(filepath, outpath, prefix):
+    """
+    Make and save network data collected from the fortigate's configurations.
+
+    :param filepath:
+        Path of the input JSON file which is the parsed results of fortios'
+        "show *configuration" outpath
+    :param outpath: Path of the file to save data
+    :param prefix: Max network prefix to search networks for
+    """
+    network.make_ans_save_networks_from_config_file(filepath, outpath=outpath,
+                                                    prefix=prefix)
 
 
 @click.command()
@@ -129,7 +149,8 @@ def main(verbose=0):
     LOG.setLevel([logging.WARNING, logging.INFO, logging.DEBUG][verbose])
 
 
-for cmd in (parse, search, firewall_save, firewall_policy_search):
+for cmd in (parse, search, network_collect, firewall_save,
+            firewall_policy_search):
     main.add_command(cmd)
 
 if __name__ == '__main__':
