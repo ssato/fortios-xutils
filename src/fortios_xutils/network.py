@@ -6,8 +6,11 @@ r"""Collect network info from fortios' configuration.
 """
 from __future__ import absolute_import
 
+import collections.abc
 import functools
 import ipaddress
+import itertools
+import logging
 import os.path
 
 import anyconfig
@@ -16,7 +19,12 @@ from . import netutils, parser, utils
 
 
 NET_MAX_PREFIX = 24
-NET_FILENAME = "netowrks.json"
+NET_FILENAME = "networks.json"
+NET_ALL_FILENAME = "composed_networks.json"
+
+NET_DATA_FMT_VER = "1.0"
+
+LOGGER = logging.getLogger(__name__)
 
 
 def list_interfaces_from_configs_itr(cnf, **sargs):
@@ -79,18 +87,17 @@ def make_net_node(net):
     return dict(id=net_s, name=net_s, type="network", addrs=[net_s])
 
 
-def make_edge_node(nodes, weight, distance):
+def make_edge_node(nodes, distance):
     """
     :param nodes: A tuple of address strings
-    :param weight: An int gives edge's weight
     :param distance: 'Distance' between edges
 
     :return: A mapping object will be used in D3.js
     """
     name = "{}_{}".format(*nodes)
 
-    return dict(type="edge", weight=weight, distance=distance,
-                id=name, name=name, source=nodes[0], target=nodes[1])
+    return dict(type="edge", distance=distance, id=name,
+                source=nodes[0], target=nodes[1])
 
 
 def _node_and_edges_from_fa_networks_itr(inets, nets):
@@ -108,10 +115,11 @@ def _node_and_edges_from_fa_networks_itr(inets, nets):
             continue
 
         distance = netutils.distance(net, inet)
-        weight = 10 / distance
+        if distance == netutils.math.inf:
+            distance = 32 * 2  # Avoid JSON syntax error by math.inf.
 
         yield make_net_node(net)
-        yield make_edge_node((inet, net), weight, distance)
+        yield make_edge_node((inet, net), distance)
 
 
 def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
@@ -130,13 +138,14 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
     hostname = parser.hostname_from_configs(cnf, **opts)
     ifaces = list(list_interfaces_from_configs_itr(cnf, **opts))
 
-    host = dict(id=hostname, type="firewall", addrs=[str(i) for i in ifaces])
+    host = dict(id=hostname, name=hostname, type="firewall",
+                addrs=[str(i) for i in ifaces])
     yield host  # host node
 
     ifns = [i.network for i in ifaces]  # :: [IPv4Network]
     for ifn in ifns:
         yield make_net_node(ifn)  # (network) node
-        yield make_edge_node((hostname, str(ifn)), 10, 1)
+        yield make_edge_node((hostname, str(ifn)), 1)
 
     inets = [str(i) for i in ifns]  # :: [str]
     nfas = networks_from_firewall_address_configs(cnf, **opts)  # :: [str]
@@ -169,7 +178,7 @@ def make_ans_save_networks_from_config_file(filepath, outpath=None,
     :param filepath: Path to the JSON file contains fortigate's configurations
     :param prefix: 'Largest' network prefix to find
 
-    :return: A graph data
+    :return: A graph data contains metadata, nodes and links data
     """
     graph = list(node_and_edges_from_config_file_itr(filepath, prefix=prefix))
     nodes = [x for x in graph if x["type"] != "edge"]
@@ -178,8 +187,80 @@ def make_ans_save_networks_from_config_file(filepath, outpath=None,
     if not outpath:
         outpath = os.path.join(os.path.dirname(filepath), NET_FILENAME)
 
-    metadata = dict(input=filepath, prefix=prefix, timestamp=utils.timestamp())
+    metadata = dict(type="metadata" ,input=filepath, prefix=prefix,
+                    timestamp=utils.timestamp(), version=NET_DATA_FMT_VER)
     res = dict(metadata=metadata, nodes=nodes, links=edges)
+
+    utils.ensure_dir_exists(outpath)
+    anyconfig.dump(res, outpath)
+
+    return res
+
+
+def load_network_graph_files_itr(filepaths):
+    """
+    Load netowrk graph data
+
+    :param filepaths:
+        A list of path to the JSON file contains network graph data
+
+    :return: A graph data contains metadata, nodes and links data
+    """
+    for filepath in filepaths:
+        graph = anyconfig.load(filepath)
+
+        if not isinstance(graph, collections.abc.Mapping) or \
+                "nodes" not in graph or "links" not in graph:
+            LOGGER.warning("Not look network graph data: %s", filepath)
+            continue
+
+        yield graph["metadata"]
+
+        for node in graph["nodes"]:
+            yield node
+
+        for link in graph["links"]:
+            yield link
+
+
+def _compose_nodes_itr(graph):
+    """Compose nodes.
+    """
+    # select unique nodes
+    nodes = {n["id"]: n for n in graph
+             if n["type"] not in ("edge", "metadata")}.values()
+
+    for node in nodes:
+        node["class"] = "node {type}".format(**node)
+        node["label"] = "{id} {type}".format(**node)
+
+        yield node
+
+
+def compose_network_graph_files(filepaths, outpath=None):
+    """
+    Make a graph of networks of nodes and edges (node and network links)
+    information from fortigate's parsed configuration file.
+
+    :param filepaths:
+        A list of path to the JSON file contains network graph data
+    :param outpath: Output file path
+
+    :return: A graph data contains metadata, nodes and links data
+    """
+    (nit, lit, mit) = itertools.tee(load_network_graph_files_itr(filepaths), 3)
+
+    nodes = list(_compose_nodes_itr(nit))
+    links = list({l["id"]: l for l in lit if l["type"] == "edge"}.values())
+
+    metadata = dict(inputs=[m["input"] for m in mit
+                            if m["type"] == "metadata"],
+                    timestamp=utils.timestamp(), version=NET_DATA_FMT_VER)
+
+    res = dict(metadata=metadata, nodes=nodes, links=links)
+
+    if not outpath:
+        outpath = os.path.join(os.path.dirname(filepaths[0]), NET_ALL_FILENAME)
 
     utils.ensure_dir_exists(outpath)
     anyconfig.dump(res, outpath)
