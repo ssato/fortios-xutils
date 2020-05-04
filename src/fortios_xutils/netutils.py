@@ -8,6 +8,8 @@ from __future__ import absolute_import
 
 import functools
 import ipaddress
+import math
+import operator
 import re
 
 import netaddr
@@ -17,7 +19,6 @@ from . import utils
 
 IPV4_IP_RE_S = r"^(\d{1,3}\.){3}\d{1,3}"
 IPV4_IP_RE = re.compile(IPV4_IP_RE_S + r'$')
-CIDR_RE = re.compile(IPV4_IP_RE_S + r'/' + IPV4_IP_RE_S + r'$')
 UNI_NETMASK_RE = re.compile(r"^255.255.255.255$")
 
 NET_MAX_PREFIX = 24
@@ -105,99 +106,70 @@ def iprange_to_ipsets(start_ip, end_ip, prefix=32):
             for ip in netaddr.iter_iprange(start_ip, end_ip)]
 
 
-def is_network_address_object(obj):
-    """
-    :return: True if given `obj` is an IPv*Network object
-
-    >>> net1 = "192.168.122.0/24"
-    >>> is_network_address_object(ipaddress.ip_network(net1))
-    True
-    >>> is_network_address_object(net1)
-    False
-    """
-    return isinstance(obj, (ipaddress.IPv4Network, ipaddress.IPv6Network))
-
-
 @functools.lru_cache(maxsize=32)
-def is_ip_in_network(ip_s, net_s):
-    """
-    :param ip_s: A str represents an (unicast, host) IP address, e.g. 10.1.1.1
-    :param net_s: A str represents a network address, e.g. 10.0.0.0/8
-    :return: True if the network `net_s` contains the ip `ip_s`
-    """
-    try:
-        return ipaddress.ip_interface(ip_s) in ipaddress.ip_network(net_s)
-    except ValueError:  # Wrong type of ip_s and/or net_s were given.
-        return False
-
-
-@functools.lru_cache(maxsize=32)
-def ip_to_network(net_s):
-    """
-    Convert a str `net_s` to ipaddress.IPv*Network object.
-    """
-    try:
-        return ipaddress.ip_network(net_s)
-    except ValueError:
-        pass
-
-    return []   # Mzero for (ipaddress.IP*, in operator)
-
-
-@functools.lru_cache(maxsize=32)
-def is_ip_in_networks(ip_s, nets):
-    """
-    :param ip_s: A str gives an (unicast, host) IP address, e.g. 10.1.1.1
-    :param nets: A tuple of str-es give network addresses, e.g. 10.0.0.0/8
-
-    :return: True if any of the network in `nets` contains the ip `ip_s`
-    """
-    try:
-        ipi = ipaddress.ip_interface(ip_s)
-        return any(ipi in ipaddress.ip_network(n) for n in nets)
-    except ValueError:  # Wrong type of ip_s and/or net_s were given.
-        return False
-
-
-@functools.lru_cache(maxsize=32)
-def to_network_or_interface(addr_s):
+def to_network(addr_s):
     """
     :param addr_s:
         A str represents an any IP address, maybe a host (unicast) or network
         address
+    :return: An IPv*Network object or None
+
+    >>> to_network("10.0.1.0/24")
+    IPv4Network('10.0.1.0/24')
+    >>> to_network("10.0.1.2/32")
+    IPv4Network('10.0.1.2/32')
+    >>> to_network("10.0.1.2")
+    IPv4Network('10.0.1.2/32')
+    >>> to_network("10.0.1.2/24") is None
+    True
+    >>> to_network("aaa") is None
+    True
     """
-    if isinstance(addr_s, (ipaddress.IPv4Network, ipaddress.IPv6Network,
-                           ipaddress.IPv4Interface, ipaddress.IPv6Interface)):
+    if isinstance(addr_s, (ipaddress.IPv4Network, ipaddress.IPv6Network)):
         return addr_s  # Nothing to do.
 
     if not utils.is_str(addr_s):
         raise ValueError("A str is expected but not: {!r}".format(addr_s))
 
-    obj = ipaddress.ip_interface(addr_s)
-    if str(obj.network) == addr_s:  # It's a network address
+    try:
         return ipaddress.ip_network(addr_s)
 
-    return obj
+    # addr_s is not an ip address or an address with host bit set, etc.
+    except ValueError:
+        return None
 
 
-def to_networks_or_interfaces_itr(addrs):
+def to_networks(*addrs):
     """
     :param addrs:
         A list of a str represents an any IP address, maybe a host (unicast) or
         network address
+    :return: A list of IPv*Network objects
     """
-    for addr in addrs:
-        yield to_network_or_interface(addr)
+    return [n for n in (to_network(a) for a in addrs) if n]
 
 
 def is_ip_in_addrs(ip_s, addrs):
     """
     :param ip_s: A str represents an (unicast, host) IP address, e.g. 10.1.1.1
     :param addrs:
-        A list of str represents a host or a network address, e.g. 10.0.0.0/8,
-        192.168.122.1/32
+        An iterable of each item represents a host or a network address, e.g.
+        10.0.0.0/8, 192.168.122.1/32
 
     :return: True if the network `net_s` contains the ip `ip_s`
+
+    >>> addrs = ("192.168.122.0/24", "192.168.1.0/24", "10.0.1.0/24",
+    ...          "192.168.122.1/32", "10.0.1.254/24")
+    >>> is_ip_in_addrs("192.168.10.254", addrs)
+    False
+    >>> is_ip_in_addrs("10.1.0.254", addrs)
+    False
+    >>> is_ip_in_addrs("192.168.122.1", addrs)
+    True
+    >>> is_ip_in_addrs("192.168.122.254", addrs)
+    True
+    >>> is_ip_in_addrs("10.0.1.1", addrs)
+    True
     """
     if not addrs:
         return False
@@ -208,43 +180,7 @@ def is_ip_in_addrs(ip_s, addrs):
         return True
 
     ipi = ipaddress.ip_interface(ipa)
-    return any(ipi in n for n in (ipaddress.ip_network(a) for a in addrs))
-
-
-@functools.lru_cache(maxsize=32)
-def network_prefix(net_addr):
-    """
-    :param net_addr: IPv*Network object
-    :return: Int value gives a prefix of given network
-    :throw: ValueError
-
-    >>> net = ipaddress.ip_network("192.168.122.0/24")
-    >>> network_prefix(net)
-    24
-    >>> intf = ipaddress.ip_interface("192.168.122.1/24")
-    >>> ipaddress.ip_network(intf)  # doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    ValueError: ...
-    """
-    if not is_network_address_object(net_addr):
-        net_addr = ipaddress.ip_network(net_addr)  # :throw: ValueError
-
-    return int(net_addr.compressed.split('/')[-1])
-
-
-def select_networks_from_addrs_itr(*addrs):
-    """
-    :param addrs:
-        A list of a str represents an IP address or network, or one of
-        IPv*Network objects
-    :
-    """
-    for addr in addrs:
-        if utils.is_str(addr):
-            addr = to_network_or_interface(addr)
-
-        if is_network_address_object(addr):
-            yield addr
+    return any(ipi in n for n in to_networks(*addrs))
 
 
 def _is_subnet_of(net1, net2):
@@ -268,41 +204,94 @@ def _is_subnet_of(net1, net2):
                  net2.broadcast_address >= net1.broadcast_address))
 
 
-def summarize_networks(*net_addrs, max_prefix=None):
+def supernet_of_networks(*net_addrs, max_prefix=32):
     """
     Degenerate and summarize given network addresses. For example,
 
-    :param net_addrs: A list of ipaddress.IPv*Network objects
+    :param net_addrs:
+        A list of strings gives and ip address with prefix or
+        ipaddress.IPv*Network objects
     :param max_prefix: Max prefix of candidate networks
 
-    >>> net1 = ipaddress.ip_network("192.168.122.0/24")
-    >>> net2 = ipaddress.ip_interface("192.168.122.2/24")  # !net
+    >>> net1 = "192.168.122.0/24"
+    >>> net2 = "192.168.122.2/24"  # !net
     >>> net3 = ipaddress.ip_network("192.168.122.0/28")
     >>> net4 = ipaddress.ip_network("192.168.1.0/24")
-    >>> summarize_networks(net1, net2, net3)
+    >>> net5 = ipaddress.ip_network("192.168.1.10/32")  # host
+    >>> supernet_of_networks(net1, net2, net3)
     IPv4Network('192.168.122.0/24')
-    >>> summarize_networks(net1, net2, net3, net4)
+    >>> supernet_of_networks(net1, net2, net3, net4)
     IPv4Network('192.168.0.0/17')
-    >>> summarize_networks(net1, net4, max_prefix=16)
+    >>> supernet_of_networks(net1, net4, max_prefix=16)
     IPv4Network('192.168.0.0/16')
     >>> net5 = ipaddress.ip_network("10.1.0.0/16")
-    >>> summarize_networks(net1, net5)
-    >>> summarize_networks(net1, net5, max_prefix=1)
+    >>> supernet_of_networks(net1, net5)
+    >>> supernet_of_networks(net1, net5, max_prefix=1)
     """
-    nets = sorted(select_networks_from_addrs_itr(*net_addrs),
-                  key=network_prefix)
+    nets = sorted(to_networks(*net_addrs),
+                  key=operator.attrgetter("prefixlen"))
     if not nets:
         return None
 
-    if max_prefix is None:
-        max_prefix = network_prefix(nets[0])
+    max_prefix = min(nets[0].prefixlen, max_prefix)
 
     # try to find the "smallest" (broadest) network.
-    for prefix in sorted(range(1, max_prefix + 1), reverse=True):
+    for prefix in reversed(range(1, max_prefix + 1)):
         cnet = nets[0].supernet(new_prefix=prefix)
-        if all(_is_subnet_of(n, cnet) for n in nets):
+        if all(_is_subnet_of(n, cnet) for n in nets[1:]):
             return cnet
 
     return None
+
+
+def distance(net1, net2, base=1):
+    """
+    Compute 'distance' between a pair of networks by these addresses only.
+
+    :param net1: A str represents a network with prefix, e.g. 10.0.1.0/24
+    :param net2: Likewise
+    :return: An int gives 'distance' indicator between a pair of networks
+
+    >>> net0 = "192.168.122.1"
+    >>> net1 = "192.168.122.0/24"
+    >>> net2 = "192.168.0.0/16"
+    >>> net3 = "192.168.1.0/24"
+    >>> net4 = "192.168.254.0/24"
+    >>> net5 = "0.0.0.0/32"
+    >>> distance(net1, net1)
+    0
+    >>> distance(net0, net1)
+    1
+    >>> distance(net1, net2)
+    8
+    >>> distance(net1, net3)
+    14
+    >>> distance(net3, net4)
+    16
+    >>> distance(net1, net5)
+    inf
+    """
+    if net1 == net2:
+        return 0
+
+    no1 = ipaddress.ip_network(net1)
+    no2 = ipaddress.ip_network(net2)
+
+    # Case that either net1 or net2 is a host address in other network.
+    if no1.num_addresses == 1 and ipaddress.ip_interface(net1) in no2:
+        return base
+
+    if no2.num_addresses == 1 and ipaddress.ip_interface(net2) in no1:
+        return base
+
+    # Case that either net1 or net2 contains other network.
+    if _is_subnet_of(no1, no2) or _is_subnet_of(no2, no1):
+        return base * abs(no1.prefixlen - no2.prefixlen)
+
+    snet = supernet_of_networks(no1, no2)
+    if snet is None:
+        return math.inf
+
+    return base * (no1.prefixlen + no2.prefixlen - 2 * snet.prefixlen)
 
 # vim:sw=4:ts=4:et:

@@ -35,22 +35,22 @@ class TestCase_10_functions(C.unittest.TestCase):
         self.assertEqual(TT.iprange_to_ipsets("10.0.0.1", "10.0.0.3"),
                          ["10.0.0.1/32", "10.0.0.2/32", "10.0.0.3/32"])
 
-    def test_50_is_ip_in_networks__ng(self):
+    def test_50_is_ip_in_addrs__ng(self):
         ngs = [("10.1.1.1", []),
                ("10.1.1.1", ["192.168.1.0/24"]),
                ("10.0.0.1", ["10.1.0.0/16"]),
                ("10.0.0.0", ["10.1.0.0/16"])]
 
         for ip_s, nets in ngs:
-            self.assertFalse(TT.is_ip_in_networks(ip_s, tuple(nets)))
+            self.assertFalse(TT.is_ip_in_addrs(ip_s, nets))
 
-    def test_52_is_ip_in_networks__ok(self):
+    def test_52_is_ip_in_addrs__ok(self):
         ngs = [("10.1.1.1", ["10.1.1.1/32"]),
                ("10.1.1.1", ["192.168.1.0/24", "10.1.1.1/32"]),
                ("10.0.0.1", ["10.0.0.0/8"]),
                ("10.0.0.0", ["10.0.0.0/8"])]
 
         for ip_s, nets in ngs:
-            self.assertTrue(TT.is_ip_in_networks(ip_s, tuple(nets)))
+            self.assertTrue(TT.is_ip_in_addrs(ip_s, nets))
 
 # vim:sw=4:ts=4:et:
