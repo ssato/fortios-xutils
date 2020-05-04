@@ -294,4 +294,27 @@ def distance(net1, net2, base=1):
 
     return base * (no1.prefixlen + no2.prefixlen - 2 * snet.prefixlen)
 
+
+def find_nearest_network(ipa, nets):
+    """
+    :param ipa: An ip address string
+    :param nets:
+        A of str gives and ip address with prefix, e.g. 10.0.1.0/24
+
+    >>> net1 = "192.168.122.0/24"
+    >>> net2 = "192.168.0.0/16"
+    >>> net3 = "192.168.1.0/24"
+    >>> net4 = "192.168.254.0/24"
+    >>> net5 = "0.0.0.0/32"
+    >>> find_nearest_network(net1, [net1, net5])
+    '192.168.122.0/24'
+    >>> find_nearest_network(net2, [net1, net5])
+    '192.168.122.0/24'
+    >>> find_nearest_network(net1, [net2, net3])
+    '192.168.0.0/16'
+    >>> find_nearest_network(net3, [net1, net4])
+    '192.168.122.0/24'
+    """
+    return sorted(nets, key=functools.partial(distance, ipa))[0]
+
 # vim:sw=4:ts=4:et:
