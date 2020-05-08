@@ -169,7 +169,7 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
         yield obj
 
 
-def make_ans_save_networks_from_config_file(filepath, outpath=None,
+def make_and_save_networks_from_config_file(filepath, outpath=None,
                                             prefix=NET_MAX_PREFIX):
     """
     Make a graph of networks of nodes and edges (node and network links)

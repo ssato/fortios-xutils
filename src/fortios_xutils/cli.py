@@ -101,7 +101,7 @@ def network_collect(filepath, outpath, prefix):
     :param outpath: Path of the file to save data
     :param prefix: Max network prefix to search networks for
     """
-    network.make_ans_save_networks_from_config_file(filepath, outpath=outpath,
+    network.make_and_save_networks_from_config_file(filepath, outpath=outpath,
                                                     prefix=prefix)
 
 
