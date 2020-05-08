@@ -86,23 +86,21 @@ def search(filepaths, path_exp):
 
 
 @click.command()
-@click.argument("filepath", type=click.Path(exists=True, readable=True))
-@click.option("-o", "--outpath",
-              help="Path of the outpath file to save network JSON data",
-              default=None)
+@click.argument("filepaths", nargs=-1,
+                type=click.Path(exists=True, readable=True))
 @click.option("-P", "--prefix", help="Max network prefix [24]", default=24)
-def network_collect(filepath, outpath, prefix):
+def network_collect(filepaths, prefix):
     """
     Make and save network data collected from the fortigate's configurations.
 
-    :param filepath:
-        Path of the input JSON file which is the parsed results of fortios'
-        "show *configuration" outpath
-    :param outpath: Path of the file to save data
+    :param filepaths:
+        A list of path of the input JSON file which is the parsed results of
+        fortios' "show *configuration" outpath
     :param prefix: Max network prefix to search networks for
     """
-    network.make_and_save_networks_from_config_file(filepath, outpath=outpath,
-                                                    prefix=prefix)
+    fpaths = list(expand_glob_paths_itr(filepaths))
+    list(network.make_and_save_networks_from_config_files_itr(fpaths,
+                                                              prefix=prefix))
 
 
 @click.command()
