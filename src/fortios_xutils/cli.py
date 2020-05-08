@@ -36,19 +36,19 @@ def expand_glob_paths_itr(filepaths):
 
 
 @click.command()
-@click.argument("filepath", type=click.Path(exists=True, readable=True))
+@click.argument("filepaths", nargs=-1,
+                type=click.Path(exists=True, readable=True))
 @click.option("-O", "--outdir",
               help=("Output dir to save parsed results [out/ relative to "
                     "input filepath]"), default=None)
-def parse(filepath, outdir):
+def parse(filepaths, outdir):
     """
-    :param filepath: Path of the input fortios' "show *configuration" output
+    :param filepaths:
+        A list of path of the input fortios' "show *configuration" output
     :param outdir: Dir to save parsed results as JSON files
     """
-    if not outdir:
-        outdir = os.path.join(os.path.dirname(filepath), "out")
-
-    parser.parse_show_config_and_dump(filepath, outdir)
+    fsit = expand_glob_paths_itr(filepaths)
+    list(parser.parse_show_configs_and_dump_itr(fsit, outdir))
 
 
 def parse_json_files_itr(filepaths, path_exp):
