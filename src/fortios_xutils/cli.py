@@ -66,7 +66,8 @@ def parse_json_files_itr(filepaths, path_exp):
 
 
 @click.command()
-@click.argument("filepaths", nargs=-1)
+@click.argument("filepaths", nargs=-1,
+                type=click.Path(exists=True, readable=True))
 @click.option("-P", "--path", "path_exp")
 def search(filepaths, path_exp):
     """
@@ -105,7 +106,8 @@ def network_collect(filepath, outpath, prefix):
 
 
 @click.command()
-@click.argument("filepaths", nargs=-1)
+@click.argument("filepaths", nargs=-1,
+                type=click.Path(exists=True, readable=True))
 @click.option("-o", "--outpath",
               help="Path of the outpath file to save network JSON data",
               default=None)
