@@ -10,6 +10,32 @@ config system global
     set timezone 60
     set vdom-admin disable
 end
+config system interface
+    edit "dmz"
+        set vdom "root"
+        set status down
+        set type physical
+        set role dmz
+        set snmp-index 1
+    next
+    edit "port1"
+        set vdom "root"
+        set ip 192.168.122.10 255.255.255.0
+        set allowaccess ping
+        set type physical
+        set vlanforward enable
+        set role lan
+        set snmp-index 3
+    next
+    edit "port2"
+        set vdom "ro"
+        set ip 192.168.1.10 255.255.255.0
+        set allowaccess ping
+        set type physical
+        set role lan
+        set snmp-index 12
+    next
+end
 config system object-tagging
     edit "default"
     next
