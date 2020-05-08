@@ -19,7 +19,7 @@ from . import netutils, parser, utils
 
 
 NET_MAX_PREFIX = 24
-NET_FILENAME = "networks.json"
+NET_FILENAME = "networks.yml"
 NET_ALL_FILENAME = "composed_networks.json"
 
 NET_DATA_FMT_VER = "1.0"
