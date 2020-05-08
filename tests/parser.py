@@ -5,6 +5,8 @@
 # pylint: disable=missing-docstring,invalid-name
 from __future__ import absolute_import
 
+import os.path
+
 import fortios_xutils.parser as TT
 import tests.common as C
 
@@ -157,6 +159,14 @@ class TestCases_30_parse(C.unittest.TestCase):
             self.assertEqual(res, ref)
 
 
+def houtdir(outdir, cnf):
+    """Compute the output dir for each hosts.
+    """
+    opts = dict(has_vdoms_=TT.has_vdom(cnf))
+    hostname = TT.hostname_from_configs(cnf, **opts)
+    return os.path.join(outdir, hostname)
+
+
 class TestCases_50(C.TestCaseWithWorkdir):
 
     maxDiff = None
@@ -168,5 +178,18 @@ class TestCases_50(C.TestCaseWithWorkdir):
             cnf = TT.parse_show_config_and_dump(cpath, outdir)
 
             self.assertTrue(cnf)
+
+            hdir = houtdir(self.workdir, cnf)
+            for fname in (TT.METADATA_FILENAME, TT.ALL_FILENAME):
+                self.assertTrue(os.path.join(hdir, fname))
+
+    def test_20_parse_show_configs_and_dump(self):
+        for _path, cnf in TT.parse_show_configs_and_dump_itr(self.cpaths,
+                                                             self.workdir):
+            self.assertTrue(cnf)
+
+            hdir = houtdir(self.workdir, cnf)
+            for fname in (TT.METADATA_FILENAME, TT.ALL_FILENAME):
+                self.assertTrue(os.path.join(hdir, fname))
 
 # vim:sw=4:ts=4:et:

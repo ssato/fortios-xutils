@@ -331,4 +331,21 @@ def parse_show_config_and_dump(inpath, outdir, cnames=CNF_NAMES):
 
     return cnf
 
+
+def parse_show_configs_and_dump_itr(inpaths, outdir, cnames=CNF_NAMES):
+    """
+    :param inpaths:
+        Similar to `inpath` in :func:`parse_show_config_and_dump` but consists
+        of mulitple paths
+    :param outdir: Dir to save parsed results as JSON files
+
+    :yield:
+        A list of a tuple of (input file path, mapping object contains parsed
+        results)
+    :raises: IOError, OSError
+    """
+    for inpath in inpaths:
+        yield (inpath,
+               parse_show_config_and_dump(inpath, outdir, cnames=cnames))
+
 # vim:sw=4:ts=4:et:
