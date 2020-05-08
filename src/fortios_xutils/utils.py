@@ -93,6 +93,8 @@ def search(jmespath_exp, data):
     >>> search("[].a[]",
     ...        [dict(a=[1, 2], b=2), dict(b=3, c=4), dict(a=[3,4])])
     [1, 2, 3, 4]
+    >>> search("[].x", [dict(a=[1, 2], b=2)])
+    []
     """
     return jmespath.search(jmespath_exp, data)
 
