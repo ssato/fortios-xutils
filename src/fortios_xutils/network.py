@@ -37,9 +37,9 @@ def list_interfaces_from_configs(cnf, **sargs):
     :return: A list of ipaddress.IPv*Interface objects give interface addresses
     """
     query = "configs[?config=='system interface'].edits[].ip"
+    qres = parser.jmespath_search(query, cnf, **sargs) or []
 
-    return [ipaddress.ip_interface("{}/{}".format(*ip)) for ip
-            in parser.jmespath_search(query, cnf, **sargs)]
+    return [ipaddress.ip_interface("{}/{}".format(*ip)) for ip in qres]
 
 
 @functools.lru_cache(maxsize=32)
@@ -71,9 +71,9 @@ def networks_from_firewall_address_configs(cnf, **sargs):
     :yield: A str gives a network address
     """
     query = "configs[?config=='firewall address'].edits[][?subnet].subnet"
+    qres = parser.jmespath_search(query, cnf, **sargs) or []
 
-    return list(set(network_from_ipa(ipa, nmask) for ipa, nmask
-                    in parser.jmespath_search(query, cnf, **sargs)))
+    return list(set(network_from_ipa(ipa, nmask) for ipa, nmask in qres))
 
 
 def make_net_node(net):
