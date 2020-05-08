@@ -277,7 +277,7 @@ def list_cnames_for_regexp(cnf, regexp=None, has_vdoms_=False):
                       if regexp.match(c)))
 
 
-def parse_show_config_and_dump(inpath, outdir, cnames=CNF_NAMES):
+def parse_show_config_and_dump(inpath, outdir=None, cnames=CNF_NAMES):
     """
     :param inpath:
         a str or :class:`pathlib.Path` object represents file path contains
@@ -298,6 +298,9 @@ def parse_show_config_and_dump(inpath, outdir, cnames=CNF_NAMES):
     except ValueError as exc:
         LOG.warning("%r: %s\nCould not resovle hostname", exc, inpath)
         hostname = unknown_name()
+
+    if not outdir:
+        outdir = "out"
 
     houtdir = os.path.join(outdir, hostname)
     utils.ensure_dir_exists(houtdir)
@@ -332,7 +335,7 @@ def parse_show_config_and_dump(inpath, outdir, cnames=CNF_NAMES):
     return cnf
 
 
-def parse_show_configs_and_dump_itr(inpaths, outdir, cnames=CNF_NAMES):
+def parse_show_configs_and_dump_itr(inpaths, outdir=None, cnames=CNF_NAMES):
     """
     :param inpaths:
         Similar to `inpath` in :func:`parse_show_config_and_dump` but consists
