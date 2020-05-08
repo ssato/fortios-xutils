@@ -27,14 +27,14 @@ NET_DATA_FMT_VER = "1.0"
 LOGGER = logging.getLogger(__name__)
 
 
-def list_interfaces_from_configs_itr(cnf, **sargs):
+def list_interfaces_from_configs(cnf, **sargs):
     """
     Get a list of interface addresses from interface configuration data.
 
     :param cnf: A mapping object holding fortios configuration data
     :param sargs: Keyword argument will be passed to parser.jmespath_search
 
-    :yield: A list of ipaddress.IPv*Interface objects give interface addresses
+    :return: A list of ipaddress.IPv*Interface objects give interface addresses
     """
     query = "configs[?config=='system interface'].edits[].ip"
 
@@ -136,7 +136,7 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
     opts = dict(has_vdoms_=parser.has_vdom(cnf))
 
     hostname = parser.hostname_from_configs(cnf, **opts)
-    ifaces = list(list_interfaces_from_configs_itr(cnf, **opts))
+    ifaces = list_interfaces_from_configs(cnf, **opts)
 
     host = dict(id=hostname, name=hostname, type="firewall",
                 addrs=[str(i) for i in ifaces])
