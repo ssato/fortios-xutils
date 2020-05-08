@@ -38,8 +38,8 @@ def expand_glob_paths_itr(filepaths):
 @click.command()
 @click.argument("filepath", type=click.Path(exists=True, readable=True))
 @click.option("-O", "--outdir",
-              help=("Output dir to save parsed results [out relative to "
-                    "input filepath"), default=None)
+              help=("Output dir to save parsed results [out/ relative to "
+                    "input filepath]"), default=None)
 def parse(filepath, outdir):
     """
     :param filepath: Path of the input fortios' "show *configuration" output
