@@ -197,6 +197,26 @@ def make_and_save_networks_from_config_file(filepath, outpath=None,
     return res
 
 
+def make_and_save_networks_from_config_files_itr(filepaths,
+                                                 prefix=NET_MAX_PREFIX):
+    """
+    Similar to :func:`make_and_save_networks_from_config_file` but allow giving
+    multiple file paths.
+
+    :param filepaths:
+        A list of paths to the JSON files contains the parsed results of
+        fortigate's 'show configuration' outputs
+    :param prefix: 'Largest' network prefix to find
+
+    :yield:
+        A tuple of (input file path, graph data contains metadata, nodes and
+        links data)
+    """
+    for fpath in filepaths:
+        yield (fpath,
+               make_and_save_networks_from_config_file(fpath, prefix=prefix))
+
+
 def load_network_graph_files_itr(filepaths):
     """
     Load netowrk graph data
