@@ -135,12 +135,26 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
     :param prefix: 'Largest' network prefix to find
 
     :return: A graph data
+    :raises: ValueError
     """
     cnf = parser.load(filepath)
+    if not cnf:
+        raise ValueError("Something goes wrong with the input: "
+                         "{}".format(filepath))
+
     opts = dict(has_vdoms_=parser.has_vdom(cnf))
 
     hostname = parser.hostname_from_configs(cnf, **opts)
+    if not hostname:
+        raise ValueError("Hostname configuration was not found. "
+                         "Is this valid config data?: "
+                         "{}".format(filepath))
+
     ifaces = list_interfaces_from_configs(cnf, **opts)
+    if not ifaces:
+        raise ValueError("Interfaces were not found or ip address "
+                         "is not set. Check the configuration data: "
+                         "{}".format(filepath))
 
     host = dict(id=hostname, name=hostname, type="firewall",
                 addrs=[str(i) for i in ifaces])
@@ -176,13 +190,14 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
 def make_and_save_networks_from_config_file(filepath, outpath=None,
                                             prefix=NET_MAX_PREFIX):
     """
-    Make a graph of networks of nodes and edges (node and network links)
+    Make a graph of netwrks of nodes and edges (node and network links)
     information from fortigate's parsed configuration file.
 
     :param filepath: Path to the JSON file contains fortigate's configurations
     :param prefix: 'Largest' network prefix to find
 
     :return: A graph data contains metadata, nodes and links data
+    :raises: ValueError
     """
     graph = list(node_and_edges_from_config_file_itr(filepath, prefix=prefix))
     nodes = [x for x in graph if x["type"] != "edge"]
@@ -191,7 +206,7 @@ def make_and_save_networks_from_config_file(filepath, outpath=None,
     if not outpath:
         outpath = os.path.join(os.path.dirname(filepath), NET_FILENAME)
 
-    metadata = dict(type="metadata" ,input=filepath, prefix=prefix,
+    metadata = dict(type="metadata", input=filepath, prefix=prefix,
                     timestamp=utils.timestamp(), version=NET_DATA_FMT_VER)
     res = dict(metadata=metadata, nodes=nodes, links=edges)
 
