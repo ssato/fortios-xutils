@@ -7,7 +7,6 @@ r"""Collect network info from fortios' configuration.
 from __future__ import absolute_import
 
 import collections.abc
-import functools
 import ipaddress
 import itertools
 import logging
