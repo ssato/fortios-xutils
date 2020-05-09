@@ -58,8 +58,12 @@ def networks_from_firewall_address_configs(cnf, **sargs):
     if not qres:
         return []
 
-    itr = [netutils.subnet_to_ip(*x["subnet"]) for x in qres if "subnet" in x]
-    return list(set(itr))
+    sns = [netutils.subnet_to_ip(*x["subnet"]) for x in qres if "subnet" in x]
+    irs = list(itertools.chain.from_iterable(
+        netutils.iprange_to_ipsets(x["start-ip"], x["end-ip"])
+        for x in qres if x.get("type") == "iprange"
+    ))
+    return list(set(sns + irs))
 
 
 def make_net_node(net):
