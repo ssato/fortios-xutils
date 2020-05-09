@@ -42,25 +42,6 @@ def list_interfaces_from_configs(cnf, **sargs):
     return [ipaddress.ip_interface("{}/{}".format(*ip)) for ip in qres]
 
 
-@functools.lru_cache(maxsize=32)
-def network_from_ipa(ipa, netmask=None):
-    """
-    :param ipa: ip address string
-    :param netmask: netmask string
-
-    :return: A str gives network address of given `ipa`
-
-    >>> network_from_ipa("192.168.1.1")
-    '192.168.1.1/32'
-    >>> network_from_ipa("192.168.1.0", "255.255.255.0")
-    '192.168.1.0/24'
-    """
-    if not netmask:
-        netmask = '32'  # prefix for the network has an IP in it.
-
-    return str(ipaddress.ip_interface("{}/{}".format(ipa, netmask)).network)
-
-
 def networks_from_firewall_address_configs(cnf, **sargs):
     """
     Get a list of network addresses from firewall address configuration data.
@@ -77,7 +58,7 @@ def networks_from_firewall_address_configs(cnf, **sargs):
            in parser.jmespath_search(query, cnf, **sargs) or []
            if "subnet" in x]
 
-    return list(set(network_from_ipa(ipa, nmask) for ipa, nmask in res))
+    return list(set(netutils.subnet_to_ip(ipa, nmask) for ipa, nmask in res))
 
 
 def make_net_node(net):
