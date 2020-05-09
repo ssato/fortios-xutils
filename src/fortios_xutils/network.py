@@ -54,11 +54,12 @@ def networks_from_firewall_address_configs(cnf, **sargs):
     # .. todo:: It does not work always but I don't know why.
     # query = "configs[?config=='firewall address'].edits[][?subnet].subnet"
     query = "configs[?config=='firewall address'].edits[]"
-    res = [x["subnet"] for x
-           in parser.jmespath_search(query, cnf, **sargs) or []
-           if "subnet" in x]
+    qres = parser.jmespath_search(query, cnf, **sargs)
+    if not qres:
+        return []
 
-    return list(set(netutils.subnet_to_ip(ipa, nmask) for ipa, nmask in res))
+    itr = [netutils.subnet_to_ip(*x["subnet"]) for x in qres if "subnet" in x]
+    return list(set(itr))
 
 
 def make_net_node(net):
