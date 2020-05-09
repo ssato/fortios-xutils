@@ -1,3 +1,4 @@
+PyYAML
 anyconfig
 anyconfig-fortios-backend
 click
