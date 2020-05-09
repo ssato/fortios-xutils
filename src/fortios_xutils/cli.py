@@ -128,7 +128,7 @@ def network_compose(filepaths, outpath):
 @click.option("-o", "--outpath",
               help="Path of the outpath file to save pandas.DataFrame data",
               default=None)
-def firewall_save(filepath, outpath):
+def firewall_policy_save(filepath, outpath):
     """
     Make and save firewall policy table (:class:`pandas.DataFrame` object).
 
@@ -181,8 +181,8 @@ def main(verbose=0):
     LOG.setLevel([logging.WARNING, logging.INFO, logging.DEBUG][verbose])
 
 
-for cmd in (parse, search, network_collect, network_compose, firewall_save,
-            firewall_policy_search):
+for cmd in (parse, search, network_collect, network_compose,
+            firewall_policy_save, firewall_policy_search):
     main.add_command(cmd)
 
 if __name__ == '__main__':
