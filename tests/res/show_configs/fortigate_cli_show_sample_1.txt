@@ -28,6 +28,7 @@ config system interface
     next
     edit "port1"
         set vdom "root"
+        set ip 192.168.122.10 255.255.255.0
         set allowaccess ping
         set type physical
         set role lan
@@ -35,6 +36,7 @@ config system interface
     next
     edit "port2"
         set vdom "ro"
+        set ip 192.168.1.10 255.255.255.0
         set allowaccess ping
         set type physical
         set role lan
