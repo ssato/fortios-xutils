@@ -38,15 +38,30 @@ NODE_TYPES = (
 LOGGER = logging.getLogger(__name__)
 
 
-def make_net_node(net):
+def add_node_info(node):
+    """
+    :param node: A mapping object denotes the network / host node
+    :return: The mapping object with additional info
+    """
+    node["type_id"] = NODE_TYPES.index(node["type"])
+    node["class"] = "node {0[type]}".format(node)
+    node["label"] = "{0[name]} ({0[type]})".format(node)
+
+    return node
+
+
+def make_net_node(net, extra_info=True):
     """
     :param net: A ipaddress.IPv*Network object
     :return: A mapping object represents the network node
-
-    :return: A mapping object will be used in D3.js
     """
     net_s = str(net)
-    return dict(id=net_s, name=net_s, type=NODE_NET, addrs=[net_s])
+    node = dict(id=net_s, name=net_s, type=NODE_NET, addrs=[net_s])
+
+    if extra_info:
+        node = add_node_info(node)
+
+    return node
 
 
 def make_edge(nodes, distance):
@@ -153,8 +168,8 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
                          "is not set. Check the configuration data: "
                          "{}".format(filepath))
 
-    host = dict(id=hostname, name=hostname, type=NODE_FIREWALL,
-                addrs=[str(i) for i in ifas])
+    host = add_node_info(dict(id=hostname, name=hostname, type=NODE_FIREWALL,
+                              addrs=[str(i) for i in ifas]))
     yield host  # host node
 
     ifns = [i.network for i in ifas]  # :: [IPv4Network]
