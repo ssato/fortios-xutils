@@ -149,6 +149,47 @@ def to_networks(*addrs):
     return [n for n in (to_network(a) for a in addrs) if n]
 
 
+def list_addrs_contain_the_ip_itr(ip_s, addrs):
+    """
+    :param ip_s: A str represents an (unicast, host) IP address, e.g. 10.1.1.1
+    :param addrs:
+        An iterable of each item represents a host or a network address, e.g.
+        10.0.0.0/8, 192.168.122.1/32
+
+    :return: A list of ip addresses of networks contain the ip `ip_s`
+
+    >>> addrs = ("192.168.122.0/24", "192.168.1.0/24", "10.0.1.0/24",
+    ...          "192.168.122.1/32", "10.0.1.254/32")
+    >>> list(list_addrs_contain_the_ip_itr("192.168.10.254", addrs))
+    []
+    >>> list(list_addrs_contain_the_ip_itr("10.1.0.254", addrs))
+    []
+    >>> list(list_addrs_contain_the_ip_itr("192.168.122.1", addrs))
+    ['192.168.122.0/24', '192.168.122.1/32']
+    >>> list(list_addrs_contain_the_ip_itr("192.168.122.254", addrs))
+    ['192.168.122.0/24']
+    >>> list(list_addrs_contain_the_ip_itr("10.0.1.1", addrs))
+    ['10.0.1.0/24']
+    """
+    if not addrs:
+        return
+
+    ipa = normalize_ip(ip_s)  # Add prefix if it's not set.
+
+    for addr in addrs:
+        if ipa == addr:  # Try exact match case first.
+            yield addr
+            continue
+
+        # Test if the network `addr` contains the ip `ipa`.
+        net = to_network(addr)
+        if net is None:
+            net = to_network(addr.split('/')[0])  # Strip prefix and ...
+
+        if ipaddress.ip_interface(ipa) in net:
+            yield addr
+
+
 def is_ip_in_addrs(ip_s, addrs):
     """
     :param ip_s: A str represents an (unicast, host) IP address, e.g. 10.1.1.1
@@ -171,16 +212,7 @@ def is_ip_in_addrs(ip_s, addrs):
     >>> is_ip_in_addrs("10.0.1.1", addrs)
     True
     """
-    if not addrs:
-        return False
-
-    ipa = normalize_ip(ip_s)
-
-    if ipa in addrs:  # Try to find exact match case first.
-        return True
-
-    ipi = ipaddress.ip_interface(ipa)
-    return any(ipi in n for n in to_networks(*addrs))
+    return any(list_addrs_contain_the_ip_itr(ip_s, addrs))
 
 
 def _is_subnet_of(net1, net2):
