@@ -77,7 +77,7 @@ def list_interface_addrs(cnf, **sargs):
     return [ipaddress.ip_interface("{}/{}".format(*ip)) for ip in qres]
 
 
-def networks_from_firewall_address_configs(cnf, **sargs):
+def list_firewall_addrs(cnf, **sargs):
     """
     Get a list of network addresses from firewall address configuration data.
 
@@ -163,10 +163,10 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
         yield make_edge((hostname, str(ifn)), 1)
 
     inets = [str(i) for i in ifns]  # :: [str]
-    nfas = networks_from_firewall_address_configs(cnf, **opts)  # :: [str]
+    fas = list_firewall_addrs(cnf, **opts)  # :: [str]
 
     # networks connected from the interfaces
-    cnets = [a for a in nfas
+    cnets = [a for a in fas
              if (netutils.is_network_address(a) and
                  a not in inets and
                  a != "0.0.0.0/32")]
@@ -176,7 +176,7 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
     # compute networks contains the hosts not in the previous `cnets` connected
     # from the interfaces.
     cnets = set(str(ipaddress.ip_network(a).supernet(new_prefix=prefix))
-                for a in nfas
+                for a in fas
                 if (a not in cnets + inets and
                     not netutils.is_ip_in_addrs(a, cnets)))
 

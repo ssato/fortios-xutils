@@ -50,14 +50,14 @@ class TestCases_10(Base):
             self.assertTrue(res)
             self.assertEqual(res, self.ref_ips)
 
-    def test_30_networks_from_firewall_address_configs__no_data(self):
+    def test_30_list_firewall_addrs__no_data(self):
         for cnf, sargs in [({}, {})]:
-            res = TT.networks_from_firewall_address_configs(cnf, **sargs)
+            res = TT.list_firewall_addrs(cnf, **sargs)
             self.assertFalse(res)
 
-    def test_32_networks_from_firewall_address_configs(self):
+    def test_32_list_firewall_addrs(self):
         for cnf, sargs in zip(self.cnfs, self.sargss):
-            res = TT.networks_from_firewall_address_configs(cnf, **sargs)
+            res = TT.list_firewall_addrs(cnf, **sargs)
             self.assertTrue(res)
             self.assertEqual(set(res), self.ref_fas)
 
