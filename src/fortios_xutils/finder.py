@@ -15,7 +15,7 @@ from . import netutils, utils
 from .network import NODE_ANY
 
 
-def validate(cnf, filepath):
+def validate(cnf, filepath='N/A'):
     """
     Validate `cnf` to fail first.
 
