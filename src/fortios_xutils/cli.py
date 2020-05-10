@@ -17,7 +17,7 @@ import os.path
 import anyconfig
 import click
 
-from fortios_xutils import parser, firewall, network
+from fortios_xutils import finder, firewall, network, parser
 
 
 LOG = logging.getLogger("fortios_xutils")
@@ -172,6 +172,30 @@ def firewall_policy_search(filepath, ip_s):
     print(anyconfig.dumps(res, **aopts))
 
 
+@click.command()
+@click.argument("filepath", type=click.Path(exists=True, readable=True))
+@click.argument("src_ip")
+@click.argument("dst_ip")
+@click.option("-N", "--ntype",
+              help="Specify node type from the list: "
+                   "{}".format(", ".join(network.NODE_TYPES)))
+def network_find_paths(filepath, src_ip, dst_ip, ntype=None):
+    """
+    Search paths from the source `src_ip` to the destination `dst_ip`.
+
+    :param filepath:
+        Path of the json or yaml file contains netowrk nodes and links
+        information.
+    :param src_ip: IP address of the source
+    :param dst_ip: IP address of the destination
+    """
+    graph = finder.load(filepath)
+    res = finder.find_paths(graph, src_ip, dst_ip)
+
+    aopts = dict(ac_parser="json", indent=2)
+    print(anyconfig.dumps(res, **aopts))
+
+
 @click.group()
 @click.option("-v", "--verbose", count=True, default=0)
 def main(verbose=0):
@@ -182,7 +206,8 @@ def main(verbose=0):
 
 
 for cmd in (parse, search, network_collect, network_compose,
-            firewall_policy_save, firewall_policy_search):
+            firewall_policy_save, firewall_policy_search,
+            network_find_paths):
     main.add_command(cmd)
 
 if __name__ == '__main__':
