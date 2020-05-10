@@ -27,7 +27,7 @@ NET_DATA_FMT_VER = "1.0"
 # - id: a str or int identifies that node
 # - name: a str or something describes what that node is
 # - type: a str, see the definition of NODE_TYPES below
-# - addrs: A list of str-es each gives any IP network with prefix
+# - addrs: A list of strings each gives any IP network with prefix
 # - **other optional keyword arguments
 NODE_TYPES = (
     NODE_ANY, NODE_NET, NODE_HOST, NODE_ROUTER, NODE_SWITCH, NODE_FIREWALL
