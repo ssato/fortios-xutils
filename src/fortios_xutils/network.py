@@ -23,7 +23,43 @@ NET_ALL_FILENAME = "composed_networks.json"
 
 NET_DATA_FMT_VER = "1.0"
 
+# Node is an object may have some attributes.
+# - id: a str or int identifies that node
+# - name: a str or something describes what that node is
+# - type: a str, see the definition of NODE_TYPES below
+# - addrs: A list of str-es each gives any IP network with prefix
+# - **other optional keyword arguments
+NODE_TYPES = (
+    NODE_ANY, NODE_NET, NODE_HOST, NODE_ROUTER, NODE_SWITCH, NODE_FIREWALL
+) = (
+    "any", "network", "host", "router", "switch", "firewall"
+)
+
 LOGGER = logging.getLogger(__name__)
+
+
+def make_net_node(net):
+    """
+    :param net: A ipaddress.IPv*Network object
+    :return: A mapping object represents the network node
+
+    :return: A mapping object will be used in D3.js
+    """
+    net_s = str(net)
+    return dict(id=net_s, name=net_s, type=NODE_NET, addrs=[net_s])
+
+
+def make_edge(nodes, distance):
+    """
+    :param nodes: A tuple of address strings
+    :param distance: 'Distance' between edges
+
+    :return: A mapping object will be used in D3.js
+    """
+    name = "{}_{}".format(*nodes)
+
+    return dict(type="edge", distance=distance, id=name,
+                source=nodes[0], target=nodes[1])
 
 
 def list_interfaces_from_configs(cnf, **sargs):
@@ -65,30 +101,6 @@ def networks_from_firewall_address_configs(cnf, **sargs):
     return list(set(sns + irs))
 
 
-def make_net_node(net):
-    """
-    :param net: A ipaddress.IPv*Network object
-    :return: A mapping object represents the network node
-
-    :return: A mapping object will be used in D3.js
-    """
-    net_s = str(net)
-    return dict(id=net_s, name=net_s, type="network", addrs=[net_s])
-
-
-def make_edge_node(nodes, distance):
-    """
-    :param nodes: A tuple of address strings
-    :param distance: 'Distance' between edges
-
-    :return: A mapping object will be used in D3.js
-    """
-    name = "{}_{}".format(*nodes)
-
-    return dict(type="edge", distance=distance, id=name,
-                source=nodes[0], target=nodes[1])
-
-
 def _node_and_edges_from_fa_networks_itr(inets, nets):
     """
     :param inets:
@@ -108,7 +120,7 @@ def _node_and_edges_from_fa_networks_itr(inets, nets):
             distance = 32 * 2  # Avoid JSON syntax error by math.inf.
 
         yield make_net_node(net)
-        yield make_edge_node((inet, net), distance)
+        yield make_edge((inet, net), distance)
 
 
 def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
@@ -141,14 +153,14 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
                          "is not set. Check the configuration data: "
                          "{}".format(filepath))
 
-    host = dict(id=hostname, name=hostname, type="firewall",
+    host = dict(id=hostname, name=hostname, type=NODE_FIREWALL,
                 addrs=[str(i) for i in ifaces])
     yield host  # host node
 
     ifns = [i.network for i in ifaces]  # :: [IPv4Network]
     for ifn in ifns:
         yield make_net_node(ifn)  # (network) node
-        yield make_edge_node((hostname, str(ifn)), 1)
+        yield make_edge((hostname, str(ifn)), 1)
 
     inets = [str(i) for i in ifns]  # :: [str]
     nfas = networks_from_firewall_address_configs(cnf, **opts)  # :: [str]

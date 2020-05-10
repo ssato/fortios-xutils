@@ -4,4 +4,5 @@ anyconfig-fortios-backend
 click
 jmespath
 netaddr
+networkx
 pandas
