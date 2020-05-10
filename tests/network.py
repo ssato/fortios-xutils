@@ -39,14 +39,14 @@ class Base(C.TestCase):
 
 class TestCases_10(Base):
 
-    def test_10_list_interfaces_from_configs__no_data(self):
+    def test_10_list_interface_addrs__no_data(self):
         for cnf, sargs in [({}, {})]:
-            res = TT.list_interfaces_from_configs(cnf, **sargs)
+            res = TT.list_interface_addrs(cnf, **sargs)
             self.assertFalse(res)
 
-    def test_12_list_interfaces_from_configs__found(self):
+    def test_12_list_interface_addrs__found(self):
         for cnf, sargs in zip(self.cnfs, self.sargss):
-            res = TT.list_interfaces_from_configs(cnf, **sargs)
+            res = TT.list_interface_addrs(cnf, **sargs)
             self.assertTrue(res)
             self.assertEqual(res, self.ref_ips)
 

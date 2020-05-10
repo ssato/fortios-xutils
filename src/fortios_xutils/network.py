@@ -62,7 +62,7 @@ def make_edge(nodes, distance):
                 source=nodes[0], target=nodes[1])
 
 
-def list_interfaces_from_configs(cnf, **sargs):
+def list_interface_addrs(cnf, **sargs):
     """
     Get a list of interface addresses from interface configuration data.
 
@@ -147,17 +147,17 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
                          "Is this valid config data?: "
                          "{}".format(filepath))
 
-    ifaces = list_interfaces_from_configs(cnf, **opts)
-    if not ifaces:
+    ifas = list_interface_addrs(cnf, **opts)  # [<ip_addr_str_w_prefix>]
+    if not ifas:
         raise ValueError("Interfaces were not found or ip address "
                          "is not set. Check the configuration data: "
                          "{}".format(filepath))
 
     host = dict(id=hostname, name=hostname, type=NODE_FIREWALL,
-                addrs=[str(i) for i in ifaces])
+                addrs=[str(i) for i in ifas])
     yield host  # host node
 
-    ifns = [i.network for i in ifaces]  # :: [IPv4Network]
+    ifns = [i.network for i in ifas]  # :: [IPv4Network]
     for ifn in ifns:
         yield make_net_node(ifn)  # (network) node
         yield make_edge((hostname, str(ifn)), 1)
