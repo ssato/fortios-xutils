@@ -86,7 +86,7 @@ def networks_from_firewall_address_configs(cnf, **sargs):
 
     :yield: A str gives a network address
     """
-    # .. todo:: It does not work always but I don't know why.
+    # .. note:: I don't know why it doesn't work as expected always.
     # query = "configs[?config=='firewall address'].edits[][?subnet].subnet"
     query = "configs[?config=='firewall address'].edits[]"
     qres = parser.jmespath_search(query, cnf, **sargs)
