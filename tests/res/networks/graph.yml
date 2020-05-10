@@ -1,0 +1,114 @@
+metadata:
+  inputs:
+  - tests/res/parsed/fortigate-01/all.json
+  - tests/res/parsed/fortigate-02/all.json
+  timestamp: 2020-05-11_02_44_55
+  version: '1.0'
+nodes:
+- id: fortigate-01
+  name: fortigate-01
+  type: firewall
+  addrs:
+  - 192.168.122.10/24
+  - 192.168.1.10/24
+  type_id: 5
+  class: node firewall
+  label: fortigate-01 firewall
+- id: 192.168.122.0/24
+  name: 192.168.122.0/24
+  type: network
+  addrs:
+  - 192.168.122.0/24
+  type_id: 1
+  class: node network
+  label: 192.168.122.0/24 network
+- id: 192.168.1.0/24
+  name: 192.168.1.0/24
+  type: network
+  addrs:
+  - 192.168.1.0/24
+  type_id: 1
+  class: node network
+  label: 192.168.1.0/24 network
+- id: 192.168.2.0/24
+  name: 192.168.2.0/24
+  type: network
+  addrs:
+  - 192.168.2.0/24
+  type_id: 1
+  class: node network
+  label: 192.168.2.0/24 network
+- id: 0.0.0.0/24
+  name: 0.0.0.0/24
+  type: network
+  addrs:
+  - 0.0.0.0/24
+  type_id: 1
+  class: node network
+  label: 0.0.0.0/24 network
+- id: 192.168.3.0/24
+  name: 192.168.3.0/24
+  type: network
+  addrs:
+  - 192.168.3.0/24
+  type_id: 1
+  class: node network
+  label: 192.168.3.0/24 network
+- id: 192.168.5.0/24
+  name: 192.168.5.0/24
+  type: network
+  addrs:
+  - 192.168.5.0/24
+  type_id: 1
+  class: node network
+  label: 192.168.5.0/24 network
+- id: fortigate-02
+  name: fortigate-02
+  type: firewall
+  addrs:
+  - 192.168.122.10/24
+  - 192.168.1.10/24
+  type_id: 5
+  class: node firewall
+  label: fortigate-02 firewall
+links:
+- type: edge
+  distance: 1
+  id: fortigate-01_192.168.122.0/24
+  source: fortigate-01
+  target: 192.168.122.0/24
+- type: edge
+  distance: 1
+  id: fortigate-01_192.168.1.0/24
+  source: fortigate-01
+  target: 192.168.1.0/24
+- type: edge
+  distance: 4
+  id: 192.168.1.0/24_192.168.2.0/24
+  source: 192.168.1.0/24
+  target: 192.168.2.0/24
+- type: edge
+  distance: 64
+  id: 192.168.122.0/24_0.0.0.0/24
+  source: 192.168.122.0/24
+  target: 0.0.0.0/24
+- type: edge
+  distance: 4
+  id: 192.168.1.0/24_192.168.3.0/24
+  source: 192.168.1.0/24
+  target: 192.168.3.0/24
+- type: edge
+  distance: 6
+  id: 192.168.1.0/24_192.168.5.0/24
+  source: 192.168.1.0/24
+  target: 192.168.5.0/24
+- type: edge
+  distance: 1
+  id: fortigate-02_192.168.122.0/24
+  source: fortigate-02
+  target: 192.168.122.0/24
+- type: edge
+  distance: 1
+  id: fortigate-02_192.168.1.0/24
+  source: fortigate-02
+  target: 192.168.1.0/24
