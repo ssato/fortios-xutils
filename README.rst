@@ -1,15 +1,15 @@
 fortios-xutils
 ================
 
-.. .. image:: https://img.shields.io/pypi/v/fortios-xutils.svg
+.. image:: https://img.shields.io/pypi/v/fortios-xutils.svg
    :target: https://pypi.python.org/pypi/fortios-xutils/
    :alt: [Latest Version]
 
-.. .. image:: https://img.shields.io/pypi/pyversions/fortios-xutils.svg
+.. image:: https://img.shields.io/pypi/pyversions/fortios-xutils.svg
    :target: https://pypi.python.org/pypi/fortios-xutils/
    :alt: [Python versions]
 
-.. .. image:: https://img.shields.io/pypi/l/fortios-xutils.svg
+.. image:: https://img.shields.io/pypi/l/fortios-xutils.svg
    :target: https://pypi.python.org/pypi/fortios-xutils/
    :alt: MIT License
 
