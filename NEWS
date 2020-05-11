@@ -1,2 +1,6 @@
-* Sat May  2 2020 ssato - 0.1.0-1
+* Tue May 12 2020 ssato - 0.1.1
+- fix: correct the copr URL
+- fix: correct the date of 0.1.0 release
+
+* Tue May 12 2020 ssato - 0.1.0
 - initial release
