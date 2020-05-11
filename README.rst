@@ -25,5 +25,25 @@ fortios-xutils
    :target: https://lgtm.com/projects/g/ssato/fortios-xutils/context:python
    :alt: [Code Quality by LGTM]
 
-
 Very experimental miscellaneous and extra utilities for fortios (fortigate).
+
+Features
+==========
+
+- Parse and dump a structured JSON file from fortios CLI's "show
+  \*configuration" outputs
+- Search an item or items from JSON files generated as a parsed result from
+  fortios CLI's "show \*configuration" outputs, using JMESPath query
+- Collect nework information from the JSON files and generate a structured JSON
+  files gives that network information
+- Compose multiple network JSON files into a network file
+- Analyze and dump firewall policy table as a pandas data for further analysis
+- Seaerch firewall policy matches given ip address
+- Find the network paths from network JSON file by ip address (src and dst)
+
+CLI Usage
+============
+
+see fortios_xutils --help fore info.
+
+.. vim:sw=4:ts=4:et:
