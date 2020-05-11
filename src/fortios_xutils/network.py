@@ -302,7 +302,8 @@ def compose_network_graph_files(filepaths, outpath=None):
     (nit, lit, mit) = itertools.tee(load_network_graph_files_itr(filepaths), 3)
 
     nodes = list(_compose_nodes_itr(nit))
-    links = list({l["id"]: l for l in lit if l["type"] == "edge"}.values())
+    links = list({link["id"]: link for link in lit
+                 if link["type"] == "edge"}.values())
 
     metadata = dict(inputs=[m["input"] for m in mit
                             if m["type"] == "metadata"],
