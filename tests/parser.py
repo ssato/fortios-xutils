@@ -117,8 +117,9 @@ class TestCases_20_jmespath_search(C.unittest.TestCase):
 
 
 def _list_cnames_from_file(filepath):
-    return sorted(set(l.replace("config ", '').rstrip() for l in open(filepath)
-                      if TT.re.match(r"^config firewall service.*", l)))
+    return sorted(set(line.replace("config ", '').rstrip()
+                      for line in open(filepath)
+                      if TT.re.match(r"^config firewall service.*", line)))
 
 
 class TestCases_30_parse(C.unittest.TestCase):
