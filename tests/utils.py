@@ -5,6 +5,7 @@
 # pylint: disable=missing-docstring,invalid-name
 from __future__ import absolute_import
 
+import os.path
 import subprocess
 
 import fortios_xutils.utils as TT
@@ -34,5 +35,17 @@ class SimpleFunctionTestCases(C.unittest.TestCase):
         ok_files = C.list_res_files("*_ok.json")
         for f in ok_files:
             self.assertTrue(TT.try_ac_load(f) is not None)
+
+    def test_60_expand_glob_paths_itr(self):
+        ref = sorted(
+            os.path.join(
+                ("tests/res/show_configs/fortigate_cli_show_sample_"
+                 "{!s}.txt".format(idx)))
+            for idx in [0, 1]
+        )
+        res = list(
+            TT.expand_glob_paths_itr(["tests/res/show_configs/*.txt"])
+        )
+        self.assertEqual(res, ref)
 
 # vim:sw=4:ts=4:et:

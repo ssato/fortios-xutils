@@ -10,29 +10,16 @@ r"""Misc CLI commands.
 """
 from __future__ import absolute_import
 
-import glob
 import logging
 import os.path
 
 import anyconfig
 import click
 
-from fortios_xutils import finder, firewall, network, parser
+from fortios_xutils import finder, firewall, network, parser, utils
 
 
 LOG = logging.getLogger("fortios_xutils")
-
-
-def expand_glob_paths_itr(filepaths):
-    """
-    :param filepaths: A list of file paths
-    """
-    for fpath in filepaths:
-        if '*' in fpath:
-            for path in sorted(glob.glob(fpath)):
-                yield path
-        else:
-            yield fpath
 
 
 @click.command()
@@ -86,7 +73,7 @@ def parse(filepaths, outdir):
 
     :param outdir: Dir to save parsed results as JSON files
     """
-    fsit = expand_glob_paths_itr(filepaths)
+    fsit = utils.expand_glob_paths_itr(filepaths)
     list(parser.parse_show_configs_and_dump_itr(fsit, outdir))
 
 
@@ -179,7 +166,7 @@ def network_collect(filepaths, prefix):
         fortios' "show *configuration" outputs
     :param prefix: Max network prefix to search networks for
     """
-    fpaths = list(expand_glob_paths_itr(filepaths))
+    fpaths = list(utils.expand_glob_paths_itr(filepaths))
     list(network.make_and_save_networks_from_config_files_itr(fpaths,
                                                               prefix=prefix))
 
@@ -221,7 +208,7 @@ def network_compose(filepaths, outpath):
         command in advance.
     :param outpath: Path of the file to save data
     """
-    fpaths = list(expand_glob_paths_itr(filepaths))
+    fpaths = list(utils.expand_glob_paths_itr(filepaths))
     network.compose_network_graph_files(fpaths, outpath=outpath)
 
 

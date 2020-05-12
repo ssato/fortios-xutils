@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import collections.abc
 import datetime
+import glob
 import hashlib
 import os.path
 import os
@@ -97,5 +98,17 @@ def search(jmespath_exp, data):
     []
     """
     return jmespath.search(jmespath_exp, data)
+
+
+def expand_glob_paths_itr(filepaths, marker='*'):
+    """
+    :param filepaths: A list of file paths
+    """
+    for fpath in filepaths:
+        if marker in fpath:
+            for path in sorted(glob.glob(fpath)):
+                yield path
+        else:
+            yield fpath
 
 # vim:sw=4:ts=4:et:
