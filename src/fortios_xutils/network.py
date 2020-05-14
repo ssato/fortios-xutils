@@ -249,14 +249,8 @@ def collect_and_save_networks_from_config_files_itr(filepaths, outdir=False,
 
     :return: A list of graph data contains metadata, nodes and links data
     """
-    for fpath in filepaths:
-        # Compute `outdir` for each `fpath` to save results separately.
-        if outdir:
-            outdir = os.path.join(outdir, utils.get_subdir(fpath))
-        else:
-            outdir = os.path.dirname(fpath)
-
-        outpath = os.path.join(outdir, NET_FILENAME)
+    for fpath, outpath in utils.get_io_paths(filepaths, NET_FILENAME,
+                                             outdir=outdir):
         data = collect_networks_from_config_file(fpath, prefix=prefix)
         utils.save_file(data, outpath)
         yield data
