@@ -82,6 +82,28 @@ def get_subdir(filepath):
     return os.path.split(os.path.dirname(filepath))[-1]
 
 
+def get_io_paths(filepaths, filename, outdir=False):
+    """
+    :param filepaths:
+        A list of paths to the JSON files contains the parsed results of
+        fortigate's 'show configuration' outputs
+
+    :param filename: Base file name of output
+    :param outdir: Dir to save outputs [same dir input files exist]
+
+    :yield: A pair of input and output paths
+    """
+    for fpath in filepaths:
+        # Compute `outdir` for each `fpath` to save results separately.
+        if outdir:
+            outdir = os.path.join(outdir, get_subdir(fpath))
+        else:
+            outdir = os.path.dirname(fpath)
+
+        yield (fpath, os.path.join(outdir, filename))
+
+
+
 def try_ac_load(filepath, type_=None, encodings=_ENCODINGS):
     """
     Try to open and load `filepath` using anyconfig.load.
