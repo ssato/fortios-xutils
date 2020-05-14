@@ -77,20 +77,6 @@ def parse(filepaths, outdir):
     list(parser.parse_show_configs_and_dump_itr(fsit, outdir))
 
 
-def parse_json_files_itr(filepaths, path_exp):
-    """
-    :param filepaths:
-        A list of the JSON input file paths. Each JSON file contains parsed
-        results
-    :param path_exp: JMESPath expression to search for
-    """
-    for filepath in filepaths:
-        cnf = parser.load(filepath)
-        res = parser.jmespath_search(path_exp, cnf,
-                                     has_vdoms_=parser.has_vdom(cnf))
-        yield (filepath, res)
-
-
 @click.command()
 @click.argument("filepaths", nargs=-1,
                 type=click.Path(exists=True, readable=True))
@@ -124,12 +110,11 @@ def search(filepaths, path_exp):
         results
     :param path_exp: JMESPath expression to search for
     """
-    fp_res_pairs = list(parse_json_files_itr(filepaths, path_exp))
+    res = api.query_json_files(filepaths, path_exp)
 
-    if len(filepaths) == 1:
-        print(anyconfig.dumps(fp_res_pairs[0][1], ac_parser="json", indent=2))
+    if len(res) == 1:
+        print(anyconfig.dumps(res[0]["results"], ac_parser="json", indent=2))
     else:
-        res = [dict(filepath=t[0], results=t[1]) for t in fp_res_pairs]
         print(anyconfig.dumps(res, ac_parser="json", indent=2))
 
 
