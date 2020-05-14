@@ -66,6 +66,22 @@ def checksum(filepath, hcnstrctr=hashlib.md5, enc="utf-8"):
     return hcnstrctr(open(filepath).read().encode(enc)).hexdigest()
 
 
+def get_subdir(filepath):
+      """
+      :param filepath: Path to the input file
+
+      >>> get_subdir("/tmp/a/b/c/d.yml")
+      'c'
+      >>> get_subdir("/tmp/x.json")
+      'tmp'
+      >>> get_subdir("/")
+      ''
+      >>> get_subdir("a.yml")
+      ''
+      """
+      return os.path.split(os.path.dirname(filepath))
+
+
 def try_ac_load(filepath, type_=None, encodings=_ENCODINGS):
     """
     Try to open and load `filepath` using anyconfig.load.
@@ -85,6 +101,18 @@ def try_ac_load(filepath, type_=None, encodings=_ENCODINGS):
             pass
 
     return None
+
+
+def save_file(data, filepath, **ac_opts):
+    """
+    An wrapper for anyconfig.dump.
+
+    :param data: Data to save
+    :param filepath:  Path to output file
+    :param ac_opts: Keyword arguments will be given to anyconfig.dump
+    """
+    ensure_dir_exists(filepath)
+    anyconfig.dump(data, filepath, **ac_opts)
 
 
 def search(jmespath_exp, data):
