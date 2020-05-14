@@ -303,9 +303,9 @@ def parse_show_config_and_dump(inpath, outdir=None, cnames=CNF_NAMES):
         outdir = "out"
 
     houtdir = os.path.join(outdir, hostname)
-    utils.ensure_dir_exists(houtdir)
 
-    anyconfig.dump(cnf, os.path.join(houtdir, ALL_FILENAME))
+    outpath = os.path.join(houtdir, ALL_FILENAME)
+    utils.save_file(cnf, outpath)
 
     gmark = '*'
     opts = dict(has_vdoms_=_has_vdoms)
