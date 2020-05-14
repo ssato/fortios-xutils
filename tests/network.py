@@ -135,8 +135,8 @@ class TestCases_20(C.TestCaseWithWorkdir, Base):
         for idx, cnf in enumerate(self.cnfs):
             TT.utils.save_file(cnf, cpaths[idx])
 
-        fun = TT.collect_networks_from_config_filess
-        for fpath, res in fun(cpaths):
+        fun = TT.collect_networks_from_config_files
+        for res in fun(cpaths):
             self.assertTrue(res)
 
 # vim:sw=4:ts=4:et:
