@@ -8,6 +8,9 @@ from __future__ import absolute_import
 
 from . import network, parser, utils
 
+# pylint: disable=unused-import
+from .network import NODE_TYPES, NODE_ANY  # noqa: F401
+
 
 def parse_and_save_show_configs(filepaths, outdir):
     """
