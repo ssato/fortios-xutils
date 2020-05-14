@@ -67,19 +67,19 @@ def checksum(filepath, hcnstrctr=hashlib.md5, enc="utf-8"):
 
 
 def get_subdir(filepath):
-      """
-      :param filepath: Path to the input file
+    """
+    :param filepath: Path to the input file
 
-      >>> get_subdir("/tmp/a/b/c/d.yml")
-      'c'
-      >>> get_subdir("/tmp/x.json")
-      'tmp'
-      >>> get_subdir("/")
-      ''
-      >>> get_subdir("a.yml")
-      ''
-      """
-      return os.path.split(os.path.dirname(filepath))
+    >>> get_subdir("/tmp/a/b/c/d.yml")
+    'c'
+    >>> get_subdir("/tmp/x.json")
+    'tmp'
+    >>> get_subdir("/")
+    ''
+    >>> get_subdir("a.yml")
+    ''
+    """
+    return os.path.split(os.path.dirname(filepath))[-1]
 
 
 def try_ac_load(filepath, type_=None, encodings=_ENCODINGS):
