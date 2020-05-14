@@ -16,7 +16,7 @@ import os.path
 import anyconfig
 import click
 
-from fortios_xutils import finder, firewall, network, parser, utils
+from fortios_xutils import api, finder, firewall, parser, utils
 
 
 LOG = logging.getLogger("fortios_xutils")
@@ -136,12 +136,14 @@ def search(filepaths, path_exp):
 @click.command()
 @click.argument("filepaths", nargs=-1,
                 type=click.Path(exists=True, readable=True))
-@click.option("-P", "--prefix", help="Max network prefix [24]", default=24)
-def network_collect(filepaths, prefix):
+@click.option("-O", "--outdir", help="Dir to save results")
+@click.option("-P", "--prefix", help="Max network prefix [24]")
+def network_collect(filepaths, outdir=False, prefix=24):
     """
-    Make and save network data collected from the JSON structured fortigate's
-    configuration files. FILEPATHS is a list of path of the JSON file, the
-    parsed results of fortigate CLI's "show \\*configuration" outputs.
+    Collect and save network data from the parsed and structured fortigate's
+    configuration files in JSON formats. FILEPATHS is a list of path of the
+    JSON file, the parsed results of fortigate CLI's "show \\*configuration"
+    outputs.
 
     Examples:
 
@@ -164,11 +166,10 @@ def network_collect(filepaths, prefix):
     :param filepaths:
         A list of path of the input JSON file which is the parsed results of
         fortios' "show *configuration" outputs
+    :param outdir: Dir to save outputs [same dir input files exist]
     :param prefix: Max network prefix to search networks for
     """
-    fpaths = list(utils.expand_glob_paths_itr(filepaths))
-    list(network.make_and_save_networks_from_config_files_itr(fpaths,
-                                                              prefix=prefix))
+    api.collect_and_save_networks(filepaths, outdir=outdir, prefix=prefix)
 
 
 @click.command()
@@ -208,8 +209,7 @@ def network_compose(filepaths, outpath):
         command in advance.
     :param outpath: Path of the file to save data
     """
-    fpaths = list(utils.expand_glob_paths_itr(filepaths))
-    network.compose_network_graph_files(fpaths, outpath=outpath)
+    api.compose_and_save_networks(filepaths, outpath=outpath)
 
 
 @click.command()
