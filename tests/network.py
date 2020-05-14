@@ -107,9 +107,9 @@ class TestCases_20(C.TestCaseWithWorkdir, Base):
             self.assertTrue(any(x for x in res if x.get("type", "network")))
             self.assertTrue(any(x for x in res if x.get("type", "edge")))
 
-    def test_20_make_and_save_networks_from_config_file__no_data(self):
+    def test_20_collect_networks_from_config_file__no_data(self):
         cpath = os.path.join(self.workdir, "test.json")
-        fun = TT.make_and_save_networks_from_config_file
+        fun = TT.collect_networks_from_config_file
 
         open(cpath, 'w').write("{}")
         self.assertRaises(ValueError, fun, cpath)
@@ -120,22 +120,22 @@ class TestCases_20(C.TestCaseWithWorkdir, Base):
         open(cpath, 'w').write(NG_CNF_S_2)
         self.assertRaises(ValueError, fun, cpath)
 
-    def test_22_make_and_save_networks_from_config_file(self):
+    def test_22_collect_networks_from_config_file(self):
         for (hname, cnf) in zip(self.hnames, self.cnfs):
             cpath = os.path.join(self.workdir, hname, "test.json")
             TT.utils.save_file(cnf, cpath)
 
-            res = TT.make_and_save_networks_from_config_file(cpath)
+            res = TT.collect_networks_from_config_file(cpath)
             self.assertTrue(res)
 
-    def test_30_make_and_save_networks_from_config_files(self):
+    def test_30_collect_networks_from_config_files(self):
         cpaths = [os.path.join(self.workdir, hname, "test.json")
                   for hname in self.hnames]
 
         for idx, cnf in enumerate(self.cnfs):
             TT.utils.save_file(cnf, cpaths[idx])
 
-        fun = TT.make_and_save_networks_from_config_files_itr
+        fun = TT.collect_networks_from_config_filess
         for fpath, res in fun(cpaths):
             self.assertTrue(res)
 

@@ -199,11 +199,10 @@ def node_and_edges_from_config_file_itr(filepath, prefix=NET_MAX_PREFIX):
         yield obj
 
 
-def make_and_save_networks_from_config_file(filepath, outpath=None,
-                                            prefix=NET_MAX_PREFIX):
+def collect_networks_from_config_file(filepath, prefix=NET_MAX_PREFIX):
     """
-    Make a graph of netwrks of nodes and edges (node and network links)
-    information from fortigate's parsed configuration file.
+    Collect network infrmation from fortigate's parsed configuration file, and
+    make a graph of netwrks of nodes and edges (node and network links).
 
     :param filepath: Path to the JSON file contains fortigate's configurations
     :param prefix: 'Largest' network prefix to find
@@ -215,37 +214,73 @@ def make_and_save_networks_from_config_file(filepath, outpath=None,
     nodes = [x for x in graph if x["type"] != "edge"]
     edges = [x for x in graph if x["type"] == "edge"]
 
-    if not outpath:
-        outpath = os.path.join(os.path.dirname(filepath), NET_FILENAME)
-
-    metadata = dict(type="metadata", input=filepath, prefix=prefix,
+    metadata = dict(type="metadata", source=filepath, network_prefix=prefix,
                     timestamp=utils.timestamp(), version=NET_DATA_FMT_VER)
-    res = dict(metadata=metadata, nodes=nodes, links=edges)
-
-    utils.ensure_dir_exists(outpath)
-    anyconfig.dump(res, outpath)
-
-    return res
+    return dict(metadata=metadata, nodes=nodes, links=edges)
 
 
-def make_and_save_networks_from_config_files_itr(filepaths,
-                                                 prefix=NET_MAX_PREFIX):
+def collect_networks_from_config_files(filepaths, prefix=NET_MAX_PREFIX):
     """
-    Similar to :func:`make_and_save_networks_from_config_file` but allow giving
-    multiple file paths.
+    Similar to :func:`collect_networks_from_config_file` but collect data from
+    multiple files.
 
     :param filepaths:
         A list of paths to the JSON files contains the parsed results of
         fortigate's 'show configuration' outputs
     :param prefix: 'Largest' network prefix to find
 
-    :yield:
-        A tuple of (input file path, graph data contains metadata, nodes and
-        links data)
+    :return: A list of graph data contains metadata, nodes and links data
+    """
+    return [collect_networks_from_config_file(f, prefix=prefix)
+            for f in filepaths]
+
+
+def collect_and_save_networks_from_config_files_itr(filepaths, outdir=False,
+                                                    prefix=NET_MAX_PREFIX):
+    """
+    Collect network infrmation from fortigate's parsed configuration file, and
+    make a graph of netwrks of nodes and edges (node and network links).
+
+    :param filepaths:
+        A list of paths to the JSON files contains the parsed results of
+        fortigate's 'show configuration' outputs
+    :param outdir: Dir to save outputs [same dir input files exist]
+    :param prefix: 'Largest' network prefix to find
+
+    :return: A list of graph data contains metadata, nodes and links data
     """
     for fpath in filepaths:
-        yield (fpath,
-               make_and_save_networks_from_config_file(fpath, prefix=prefix))
+        # Compute `outdir` for each `fpath` to save results separately.
+        if outdir:
+            outdir = os.path.join(outdir, utils.get_subdir(fpath))
+        else:
+            outdir = os.path.dirname(fpath)
+
+        outpath = os.path.join(outdir, NET_FILENAME)
+        data = collect_networks_from_config_file(fpath, prefix=prefix)
+        utils.save_file(data, outpath)
+        yield data
+
+
+def collect_and_save_networks_from_config_files(filepaths, outdir=False,
+                                                prefix=NET_MAX_PREFIX):
+    """
+    Collect network infrmation from fortigate's parsed configuration file, and
+    make a graph of netwrks of nodes and edges (node and network links).
+
+    :param filepaths:
+        A list of paths to the JSON files contains the parsed results of
+        fortigate's 'show configuration' outputs
+    :param outdir: Dir to save outputs [same dir input files exist]
+    :param prefix: 'Largest' network prefix to find
+
+    :return: A list of graph data contains metadata, nodes and links data
+    """
+    return list(
+        collect_and_save_networks_from_config_files_itr(
+            filepaths, outdir=outdir, prefix=prefix
+        )
+    )
 
 
 def load_network_graph_files_itr(filepaths):
@@ -288,14 +323,13 @@ def _compose_nodes_itr(graph):
         yield node
 
 
-def compose_network_graph_files(filepaths, outpath=None):
+def compose_network_files(filepaths):
     """
-    Make a graph of networks of nodes and edges (node and network links)
-    information from fortigate's parsed configuration file.
+    Compose a network graphs consist of nodes and edges (node and network
+    links) information collected from fortigate's parsed configuration file.
 
     :param filepaths:
         A list of path to the JSON file contains network graph data
-    :param outpath: Output file path
 
     :return: A graph data contains metadata, nodes and links data
     """
@@ -303,19 +337,32 @@ def compose_network_graph_files(filepaths, outpath=None):
 
     nodes = list(_compose_nodes_itr(nit))
     links = list({link["id"]: link for link in lit
-                 if link["type"] == "edge"}.values())
+                  if link["type"] == "edge"}.values())
 
-    metadata = dict(inputs=[m["input"] for m in mit
-                            if m["type"] == "metadata"],
+    metadata = dict(sources=[m["source"] for m in mit
+                             if m["type"] == "metadata"],
                     timestamp=utils.timestamp(), version=NET_DATA_FMT_VER)
 
-    res = dict(metadata=metadata, nodes=nodes, links=links)
+    return dict(metadata=metadata, nodes=nodes, links=links)
+
+
+def compose_and_save_network_files(filepaths, outpath=False):
+    """
+    Compose a network graphs consist of nodes and edges (node and network
+    links) information collected from fortigate's parsed configuration file.
+
+    :param filepaths:
+        A list of path to the JSON file contains network graph data
+    :param outpath: Output file path
+
+    :return: A graph data contains metadata, nodes and links data
+    """
+    res = compose_network_files(filepaths)
 
     if not outpath:
         outpath = os.path.join(os.path.dirname(filepaths[0]), NET_ALL_FILENAME)
 
-    utils.ensure_dir_exists(outpath)
-    anyconfig.dump(res, outpath)
+    utils.save_file(res, outpath)
 
     return res
 
