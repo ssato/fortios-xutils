@@ -313,7 +313,7 @@ def firewall_policy_search(filepath, ip_s):
 @click.argument("dst_ip")
 @click.option("-N", "--ntype",
               help="Specify node type from the list: "
-                   "{}".format(", ".join(network.NODE_TYPES)))
+                   "{}".format(", ".join(api.NODE_TYPES)))
 def network_find_paths(filepath, src_ip, dst_ip, ntype=None):
     """
     Search paths from the source `src_ip` to the destination `dst_ip`.
