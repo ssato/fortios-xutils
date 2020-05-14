@@ -73,7 +73,7 @@ def parse(filepaths, outdir):
 
     :param outdir: Dir to save parsed results as JSON files
     """
-    api.parse_and_save_show_configs(fsit, outdir))
+    api.parse_and_save_show_configs(fsit, outdir)
 
 
 @click.command()
