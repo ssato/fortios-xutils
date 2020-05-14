@@ -99,8 +99,7 @@ class TestCases_20(C.TestCaseWithWorkdir, Base):
     def test_12_node_and_edges_from_config_file_itr(self):
         for (hname, cnf) in zip(self.hnames, self.cnfs):
             cpath = os.path.join(self.workdir, hname, "test.json")
-            TT.utils.ensure_dir_exists(cpath)
-            TT.anyconfig.dump(cnf, cpath)
+            TT.utils.save_file(cnf, cpath)
 
             res = node_and_edges_from_config_file(cpath)
             self.assertTrue(res)
@@ -124,8 +123,7 @@ class TestCases_20(C.TestCaseWithWorkdir, Base):
     def test_22_make_and_save_networks_from_config_file(self):
         for (hname, cnf) in zip(self.hnames, self.cnfs):
             cpath = os.path.join(self.workdir, hname, "test.json")
-            TT.utils.ensure_dir_exists(cpath)
-            TT.anyconfig.dump(cnf, cpath)
+            TT.utils.save_file(cnf, cpath)
 
             res = TT.make_and_save_networks_from_config_file(cpath)
             self.assertTrue(res)
@@ -135,8 +133,7 @@ class TestCases_20(C.TestCaseWithWorkdir, Base):
                   for hname in self.hnames]
 
         for idx, cnf in enumerate(self.cnfs):
-            TT.utils.ensure_dir_exists(cpaths[idx])
-            TT.anyconfig.dump(cnf, cpaths[idx])
+            TT.utils.save_file(cnf, cpaths[idx])
 
         fun = TT.make_and_save_networks_from_config_files_itr
         for fpath, res in fun(cpaths):
