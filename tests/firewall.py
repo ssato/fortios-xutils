@@ -48,24 +48,21 @@ class TestCases_20(C.TestCaseWithWorkdir):
 
 class TestCasesWithConfigs(C.TestCase):
 
-    cpaths = C.list_res_files("show_configs", "*.txt")
+    cpaths = C.list_res_files("parsed", "*/all.json")
+    cnfs = [P.load(p) for p in cpaths]
 
 
 class TestCases_30(C.TestCaseWithWorkdir, TestCasesWithConfigs):
 
     def test_20_make_and_save_firewall_policy_table(self):
         for idx, cpath in enumerate(self.cpaths):
-            opath = TT.os.path.join(self.workdir, str(idx), "fw.pickle")
-            cnf = P.parse_show_config(cpath)
-            rdf = TT.make_and_save_firewall_policy_table(cnf, opath)
+            opath = TT.os.path.join(self.workdir, str(idx), "fw.pickle.gz")
+            rdf = TT.make_and_save_firewall_policy_table(cpath, opath)
             self.assertFalse(rdf.empty)
             self.assertTrue(TT.os.path.exists(opath))
 
 
 class TestCases_40(TestCasesWithConfigs):
-
-    def setUp(self):
-        self.cnfs = [P.parse_show_config(p) for p in self.cpaths]
 
     def test_10_make_firewall_address_table_1(self):
         for cnf in self.cnfs:
@@ -101,16 +98,14 @@ class TestCases_40(TestCasesWithConfigs):
                                 for addrs in rdf["addrs"].values))
 
 
-class TestCases_50(C.unittest.TestCase):
+class TestCases_50(TestCasesWithConfigs):
 
     def setUp(self):
-        self.cpaths = C.list_res_files("show_configs", "*.txt")
-        self.cnfs = [P.parse_show_config(p) for p in self.cpaths]
         self.fdfs = [
             TT.make_firewall_address_table(c, has_vdoms_=P.has_vdom(c))
             for c in self.cnfs
         ]
-        self.pdfs = [TT.make_firewall_policy_table(c) for c in self.cnfs]
+        self.pdfs = [TT.make_firewall_policy_table(c) for c in self.cpaths]
 
     def test_10_search_by_addr_1__fa_not_found(self):
         for fdf in self.fdfs:

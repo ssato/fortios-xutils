@@ -25,7 +25,9 @@ DF_ZERO = pandas.DataFrame()
 
 ADDRS_COL_NAMES = ("addrs", "srcaddrs", "dstaddrs")
 
+FWP_TABLE_FILENAME = "firewall_policy_table.data.pickle.gz"
 COMPRESSION_MAPS = dict(gz="gzip", bz2="bz2", zip='zip', xz='xz')
+DEFAULT_COMPRESSION = "gzip"
 
 
 def df_by_query(path_exp, data, normalize_fn=None,
@@ -223,21 +225,30 @@ def make_firewall_policy_table_1(cnf, df_fa, has_vdoms_=False, vdom=None):
     return df_fp
 
 
-def make_firewall_policy_table(cnf, vdom=None):
+def make_firewall_policy_table(filepath, vdom=None):
     """
-    :param cnf: A mapping object contains firewall configurations
-    :param df_fa: A :class:`pandas.DataFrame` object holds firewall addresses
-    :param has_vdoms: True if givne `cnf` contains vdoms
+    :param filepath: Path to the JSON file contains fortigate's configurations
     :param vdom: Specify vdom to make table
 
     :return: A :class:`pandas.DataFrame` object
     """
+    cnf = parser.load(filepath)
     opts = dict(has_vdoms_=parser.has_vdom(cnf), vdom=vdom)
 
     df_fa = make_firewall_address_table(cnf, **opts)
     rdf = make_firewall_policy_table_1(cnf, df_fa, **opts)
 
     return rdf
+
+
+def make_firewall_policy_tables(filepaths, vdom=None):
+    """
+    :param filepath: Path to the JSON file contains fortigate's configurations
+    :param vdom: Specify vdom to make table
+
+    :return: A list of :class:`pandas.DataFrame` object
+    """
+    return [make_firewall_policy_table(f, vdom=vdom) for f in filepaths]
 
 
 def guess_filetype(filepath, compression=None):
@@ -276,6 +287,53 @@ def pandas_save(rdf, outpath, filetype=None, compression=None):
     save_fn(outpath, compression=compression)
 
 
+def make_and_save_firewall_policy_table(filepath, outpath, vdom=None,
+                                        filetype=None,
+                                        compression=DEFAULT_COMPRESSION):
+    """
+    :param filepath: Path to the JSON file contains fortigate's configurations
+    :param outpath: Output file path
+    :param vdom: Specify vdom to make table
+    :param filetype: File type to save as
+    :param compression: Compression method
+
+    :return: A :class:`pandas.DataFrame` object
+    """
+    rdf = make_firewall_policy_table(filepath, vdom=vdom)
+    pandas_save(rdf, outpath, filetype=filetype, compression=compression)
+
+    return rdf
+
+
+def make_and_save_firewall_policy_tables_itr(filepaths, outdir=False,
+                                             vdom=None):
+    """
+    :param filepath: Path to the JSON file contains fortigate's configurations
+    :param outdir: Dir to save outputs [same dir input files exist]
+    :param vdom: Specify vdom to make table
+
+    :return: A generator yields :class:`pandas.DataFrame` object
+    """
+    for fpath, outpath in utils.get_io_paths(filepaths, FWP_TABLE_FILENAME,
+                                             outdir):
+        yield make_and_save_firewall_policy_table(fpath, outpath, vdom=vdom)
+
+
+def make_and_save_firewall_policy_tables(filepaths, outdir=False, vdom=None):
+    """
+    :param filepath: Path to the JSON file contains fortigate's configurations
+    :param outdir: Dir to save outputs [same dir input files exist]
+    :param vdom: Specify vdom to make table
+
+    :return: A list of :class:`pandas.DataFrame` objects
+    """
+    return list(
+        make_and_save_firewall_policy_tables_itr(
+            filepaths, outdir=outdir, vdom=vdom
+        )
+    )
+
+
 def pandas_load(inpath, filetype=None, compression=None):
     """
     :param inpath: Output file path
@@ -292,21 +350,14 @@ def pandas_load(inpath, filetype=None, compression=None):
     return load_fn(inpath, compression=compression)
 
 
-def make_and_save_firewall_policy_table(cnf, outpath, vdom=None,
-                                        filetype=None, compression=None):
+def load_firewall_policy_table(filepath, compression=DEFAULT_COMPRESSION):
     """
-    :param cnf: A mapping object contains firewall configurations
-    :param outpath: Output file path
-    :param vdom: Specify vdom to make table
-    :param filetype: File type to save as
+    :param filepath: Path to the JSON file contains fortigate's configurations
     :param compression: Compression method
 
     :return: A :class:`pandas.DataFrame` object
     """
-    rdf = make_firewall_policy_table(cnf, vdom=vdom)
-    pandas_save(rdf, outpath, filetype=filetype, compression=compression)
-
-    return rdf
+    return pandas_load(filepath, compression=compression)
 
 
 def search_by_addr_1(ip_s, tbl_df, addrs_cols=ADDRS_COL_NAMES):
