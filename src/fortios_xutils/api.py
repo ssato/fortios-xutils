@@ -6,7 +6,7 @@ r"""Find network nodes.
 """
 from __future__ import absolute_import
 
-from . import network, parser, utils
+from . import firewall, network, parser, utils
 
 # pylint: disable=unused-import
 from .network import NODE_TYPES, NODE_ANY  # noqa: F401
@@ -121,5 +121,63 @@ def compose_and_save_networks(filepaths, outpath=False):
     """
     fsit = utils.expand_glob_paths_itr(filepaths)
     return network.compose_and_save_network_files(fsit, outpath=outpath)
+
+
+def make_firewall_policy_table(filepath):
+    """
+    :param filepath:
+        A path might to JSON input files which contains parsed and structured
+        results of fortigate's configuration outputs
+
+    :return: A :class:`pandas.DataFrame` object
+    """
+    return firewall.make_firewall_policy_table(filepath)
+
+
+def make_firewall_policy_tables(filepaths):
+    """
+    :param filepaths:
+        An iterable yields a path might contain '*' (glob) pattern will be
+        expanded to a list of paths to JSON input files which contains parsed
+        and structured results of fortigate's configuration outputs
+
+    :return: A list of :class:`pandas.DataFrame` object
+    """
+    return firewall.make_firewall_policy_tables(filepaths)
+
+
+def make_and_save_firewall_policy_tables(filepaths, outdir=False):
+    """
+    :param filepaths:
+        An iterable yields a path might contain '*' (glob) pattern will be
+        expanded to a list of paths to JSON input files which contains parsed
+        and structured results of fortigate's configuration outputs
+
+    :return: A list of :class:`pandas.DataFrame` object
+    """
+    return firewall.make_and_save_firewall_policy_tables(
+        filepaths, outdir=outdir
+    )
+
+
+def load_firewall_policy_table(filepath):
+    """
+    :param filepath: Path to the JSON file contains fortigate's configurations
+
+    :return: A :class:`pandas.DataFrame` object
+    """
+    return firewall.load_firewall_policy_table(filepath)
+
+
+def search_firewall_policy_table_by_addr(ip_s, tbl_df):
+    """
+    :param ip_s: A str represents an IP address
+    :param tbl_df:
+        A :class:`pandas.DataFrame` object contains ip addresses in the columns
+        have one or some of `addrs_cols`.
+
+    :return: A list of mappping objects contains results
+    """
+    return firewall.search_by_addr_1(ip_s, tbl_df)
 
 # vim:sw=4:ts=4:et:
