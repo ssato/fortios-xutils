@@ -82,6 +82,27 @@ def get_subdir(filepath):
     return os.path.split(os.path.dirname(filepath))[-1]
 
 
+def get_io_path(filepath, filename, outdir=False):
+    """
+    :param filepath: A paths to input file
+    :param filename: Base file name of output
+    :param outdir: Dir to save outputs, same dir input files exist by default.
+
+    :return: A pair of paths of input and output files
+
+    >>> get_io_path("/a/b/c/d.json", "x.yml")
+    ('/a/b/c/d.json', '/a/b/c/x.yml')
+    >>> get_io_path("/a/b/c/d.json", "x.yml", "/0/1/2")
+    ('/a/b/c/d.json', '/0/1/2/c/x.yml')
+    """
+    if outdir:
+        outdir = os.path.join(outdir, get_subdir(filepath))
+    else:
+        outdir = os.path.dirname(filepath)
+
+    return (filepath, os.path.join(outdir, filename))
+
+
 def get_io_paths(filepaths, filename, outdir=False):
     """
     :param filepaths:
@@ -95,13 +116,7 @@ def get_io_paths(filepaths, filename, outdir=False):
     """
     for fpath in filepaths:
         # Compute `outdir` for each `fpath` to save results separately.
-        if outdir:
-            outdir = os.path.join(outdir, get_subdir(fpath))
-        else:
-            outdir = os.path.dirname(fpath)
-
-        yield (fpath, os.path.join(outdir, filename))
-
+        yield get_io_path(fpath, filename, outdir=outdir)
 
 
 def try_ac_load(filepath, type_=None, encodings=_ENCODINGS):
