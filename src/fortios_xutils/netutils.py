@@ -34,6 +34,9 @@ def normalize_ip(ip_s, prefix="/32"):
     >>> normalize_ip("192.168.122.0/24")
     '192.168.122.0/24'
     """
+    if not utils.is_str(ip_s):
+        raise ValueError("A str is expected but not: {!r}".format(ip_s))
+
     if '/' not in ip_s:  # e.g. 192.168.122.1
         return ip_s + prefix  # Normalize it.
 
@@ -50,6 +53,9 @@ def is_network_address(addr, sep='/'):
     >>> is_network_address("10.0.0.0/8")
     True
     """
+    if not utils.is_str(addr):
+        raise ValueError("A str is expected but not: {!r}".format(addr))
+
     if sep in addr:
         return addr.split(sep)[-1] != '32'
 
