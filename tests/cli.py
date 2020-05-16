@@ -134,7 +134,7 @@ class TestCliCases(Base):
             self.assertFalse(res.output)
             self.assertTrue(os.path.exists(opath))
 
-    def test_50_firewall_policy_save__single_input(self):
+    def test_50_firewall_policy_save_and_search__single_input(self):
         outdir = "out"
         for cpath in self.cpaths:
             with self.runner.isolated_filesystem():
@@ -148,7 +148,23 @@ class TestCliCases(Base):
                 self.assertTrue(files)
                 self.assertEqual(len(files), 1)
 
-    def test_52_firewall_policy_save__multi_inputs(self):
+                # not found
+                ipa = "127.0.0.1"
+                res = self.runner.invoke(TT.firewall_policy_search,
+                                         ["-i", ipa, files[0]])
+                self.assertEqual(res.exit_code, 0)
+                self.assertTrue(res.output)
+                self.assertEqual(res.output, "[]\n")
+
+                # found
+                ipa = "192.168.122.3"
+                res = self.runner.invoke(TT.firewall_policy_search,
+                                         ["-i", ipa, files[0]])
+                self.assertEqual(res.exit_code, 0)
+                self.assertTrue(res.output)
+                self.assertNotEqual(res.output, "[]\n")
+
+    def test_52_firewall_policy_save_and_search__multi_inputs(self):
         outdir = "out"
         with self.runner.isolated_filesystem():
             res = self.runner.invoke(TT.firewall_policy_save,
@@ -161,23 +177,23 @@ class TestCliCases(Base):
             self.assertTrue(files)
             self.assertEqual(len(files), 2)
 
-    def test_60_firewall_policy_search__not_found(self):
-        ipa = "127.0.0.1"
-        for fpath in self.fpaths:
-            res = self.runner.invoke(TT.firewall_policy_search,
-                                     ["-i", ipa, fpath])
-            self.assertEqual(res.exit_code, 0)
-            self.assertTrue(res.output)
-            self.assertEqual(res.output, "[]\n")
+            # not found
+            ipa = "127.0.0.1"
+            for fdb in files:
+                res = self.runner.invoke(TT.firewall_policy_search,
+                                         ["-i", ipa, fdb])
+                self.assertEqual(res.exit_code, 0)
+                self.assertTrue(res.output)
+                self.assertEqual(res.output, "[]\n")
 
-    def test_62_firewall_policy_search__found(self):
-        ipa = "192.168.122.3"
-        for fpath in self.fpaths:
-            res = self.runner.invoke(TT.firewall_policy_search,
-                                     ["-i", ipa, fpath])
-            self.assertEqual(res.exit_code, 0)
-            self.assertTrue(res.output)
-            self.assertNotEqual(res.output, "[]\n")
+            # found
+            ipa = "192.168.122.3"
+            for fdb in files:
+                res = self.runner.invoke(TT.firewall_policy_search,
+                                         ["-i", ipa, fdb])
+                self.assertEqual(res.exit_code, 0)
+                self.assertTrue(res.output)
+                self.assertNotEqual(res.output, "[]\n")
 
     def test_70_network_find_paths__not_found(self):
         (src, dst) = ("127.0.0.1", "192.168.122.2")
