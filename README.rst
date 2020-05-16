@@ -38,8 +38,9 @@ Features
   files gives that network information
 - Compose multiple network JSON files into a network file
 - Analyze and dump firewall policy table as a pandas data for further analysis
-- Seaerch firewall policy matches given ip address
-- Find the network paths from network JSON file by ip address (src and dst)
+- Search firewall policy matches given ip address
+- Find the network paths from network JSON file by ip address (src and dst) to
+  figure out which firewall nodes to configure
 
 CLI Usage
 ============
