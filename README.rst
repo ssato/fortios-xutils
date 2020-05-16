@@ -69,7 +69,7 @@ See `fortios_xutils --help`.
       network-find-paths      Search paths from the source `src_ip` to the...
       parse                   Parse fortigate CLI's "show *configuration*...
       search                  Search an item or items from JSON file generated...
-    ssato@x1-carbon-gen6% for sc in parse search network-collect network-compose firewall-policy-save firewall-policy-search                                       for> do echo "# $sc"; PYTHONPATH=src python3 ./src/fortios_xutils/cli.py $sc --help; done
+    ssato@x1-carbon-gen6% for sc in parse search network-collect network-compose firewall-policy-save firewall-policy-search; do echo "# $sc"; PYTHONPATH=src python3 ./src/fortios_xutils/cli.py $sc --help; done
     # parse
     Usage: cli.py parse [OPTIONS] [FILEPATHS]...
 
@@ -145,9 +145,10 @@ See `fortios_xutils --help`.
     # network-collect
     Usage: cli.py network-collect [OPTIONS] [FILEPATHS]...
 
-      Make and save network data collected from the JSON structured fortigate's
-      configuration files. FILEPATHS is a list of path of the JSON file, the
-      parsed results of fortigate CLI's "show \*configuration" outputs.
+      Collect and save network data from the parsed and structured fortigate's
+      configuration files in JSON formats. FILEPATHS is a list of path of the
+      JSON file, the parsed results of fortigate CLI's "show \*configuration"
+      outputs.
 
       Examples:
 
@@ -166,8 +167,9 @@ See `fortios_xutils --help`.
           $
 
     Options:
-      -P, --prefix INTEGER  Max network prefix [24]
-      --help                Show this message and exit.
+      -O, --outdir TEXT  Dir to save results
+      -P, --prefix TEXT  Max network prefix [24]
+      --help             Show this message and exit.
     # network-compose
     Usage: cli.py network-compose [OPTIONS] [FILEPATHS]...
 
@@ -197,7 +199,7 @@ See `fortios_xutils --help`.
       -o, --outpath TEXT  Path of the outpath file to save network JSON data
       --help              Show this message and exit.
     # firewall-policy-save
-    Usage: cli.py firewall-policy-save [OPTIONS] FILEPATH
+    Usage: cli.py firewall-policy-save [OPTIONS] [FILEPATHS]...
 
       Make and save firewall policy table (:class:`pandas.DataFrame` object).
 
@@ -211,8 +213,8 @@ See `fortios_xutils --help`.
           $
 
     Options:
-      -o, --outpath TEXT  Path of the outpath file to save pandas.DataFrame data
-      --help              Show this message and exit.
+      -O, --outdir TEXT  Dir to save results [same dir input files exist]
+      --help             Show this message and exit.
     # firewall-policy-search
     Usage: cli.py firewall-policy-search [OPTIONS] FILEPATH
 
