@@ -11,12 +11,11 @@ r"""Misc CLI commands.
 from __future__ import absolute_import
 
 import logging
-import os.path
 
 import anyconfig
 import click
 
-from fortios_xutils import api, finder, firewall, parser, utils
+from fortios_xutils import api, finder
 
 
 LOG = logging.getLogger("fortios_xutils")
@@ -197,11 +196,11 @@ def network_compose(filepaths, outpath):
 
 
 @click.command()
-@click.argument("filepath", type=click.Path(exists=True, readable=True))
-@click.option("-o", "--outpath",
-              help="Path of the outpath file to save pandas.DataFrame data",
-              default=None)
-def firewall_policy_save(filepath, outpath):
+@click.argument("filepaths", nargs=-1,
+                type=click.Path(exists=True, readable=True))
+@click.option("-O", "--outdir",
+              help="Dir to save results [same dir input files exist]")
+def firewall_policy_save(filepaths, outdir):
     """
     Make and save firewall policy table (:class:`pandas.DataFrame` object).
 
@@ -219,15 +218,9 @@ def firewall_policy_save(filepath, outpath):
     :param filepath:
         Path of the input JSON file which is the parsed results of fortios'
         "show *configuration" outpath
-    :param outpath: Path of the file to save data
+    :param outdir: Dir to save outputs [same dir input files exist]
     """
-    if not outpath:
-        outpath = os.path.join(os.path.dirname(filepath), "out",
-                               "result.pickle.gz")
-
-    cnf = parser.load(filepath)
-    firewall.make_and_save_firewall_policy_table(cnf, outpath,
-                                                 compression="gzip")
+    api.make_and_save_firewall_policy_tables(filepaths, outdir=outdir)
 
 
 @click.command()
@@ -274,21 +267,13 @@ def firewall_policy_search(filepath, ip_s):
 
     \f
     :param filepath:
-        Path of the json file contains parsed results of fortios' "show
-        *configuration" outputs, or pandas.DataFrame data file, or the
-        serialized pandas.DataFrame object contains firewall policy table
+        Path to a pandas.DataFrame data file contains firewall policy table
     :param ip_s: IP address string to search
     """
-    if filepath.endswith("json"):
-        cnf = parser.load(filepath)
-        rdf = firewall.make_firewall_policy_table(cnf)
-    else:
-        rdf = firewall.pandas_load(filepath, compression="gzip")
+    rdf = api.load_firewall_policy_table(filepath)
+    res = api.search_firewall_policy_table_by_addr(ip_s, rdf)
 
-    res = firewall.search_by_addr_1(ip_s, rdf)
-
-    aopts = dict(ac_parser="json", indent=2)
-    print(anyconfig.dumps(res, **aopts))
+    print(anyconfig.dumps(res, ac_parser="json", indent=2))
 
 
 @click.command()
