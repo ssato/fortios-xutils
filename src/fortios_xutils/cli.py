@@ -15,7 +15,7 @@ import logging
 import anyconfig
 import click
 
-from fortios_xutils import api, finder
+from fortios_xutils import api
 
 
 LOG = logging.getLogger("fortios_xutils")
@@ -340,8 +340,7 @@ def network_find_paths(filepath, src_ip, dst_ip, ntype=None):
     :param src_ip: IP address of the source
     :param dst_ip: IP address of the destination
     """
-    graph = finder.load(filepath)
-    res = finder.find_paths(graph, src_ip, dst_ip)
+    res = api.find_network_paths(filepath, src_ip, dst_ip)
 
     aopts = dict(ac_parser="json", indent=2)
     print(anyconfig.dumps(res, **aopts))
