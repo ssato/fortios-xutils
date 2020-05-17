@@ -16,19 +16,26 @@ BuildRequires:  python3-setuptools
 BuildRequires:  python3-devel
 %if %{with tests}
 BuildRequires:  python3-tox
+BuildRequires:  python3-coveralls
+BuildRequires:  python3-flake8
+BuildRequires:  python3-nose
+BuildRequires:  python3-pycodestyle
+BuildRequires:  python3-pylint
 %endif
 
 %description    %{desc}
 
 %package -n python3-%{pkgname}
 Summary:        %{summary}
-Requires:       python3-jmespath
-# It's available from https://copr.fedorainfracloud.org/coprs/ssato/python-anyconfig/
-Requires:       python3-anyconfig
-Requires:       python3-anyconfig-fortios-backend
 Requires:       python3-click
 Requires:       python3-jmespath
 Requires:       python3-netaddr
+Requires:       python3-networkx
+Requires:       python3-pandas
+Requires:       python3-pyyaml
+# It's available from https://copr.fedorainfracloud.org/coprs/ssato/python-anyconfig/
+Requires:       python3-anyconfig
+Requires:       python3-anyconfig-fortios-backend
 %{?python_provide:%python_provide python3-%{pkgname}}
 
 %description -n python3-%{pkgname} %{desc}
@@ -54,5 +61,9 @@ tox -e py$(python -c "import sys; sys.stdout.write(sys.version[:3].replace('.', 
 %{_bindir}/*
 
 %changelog
+* Sun May 17 2020 Satoru SATOH <satoru.satoh@gmail.com> - 0.3.0-1
+- New upstream
+- Add some runtime and test time dependencies
+
 * Sat May  2 2020 Satoru SATOH <satoru.satoh@gmail.com> - 0.1.0-1
 - Initial packaging
