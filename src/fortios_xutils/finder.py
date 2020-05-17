@@ -7,6 +7,7 @@ r"""Find network nodes.
 from __future__ import absolute_import
 
 import collections.abc
+import functools
 import itertools
 
 import networkx
@@ -40,10 +41,13 @@ def validate(cnf, filepath='N/A'):
                          "found in {}".format(filepath))
 
 
+@functools.lru_cache(maxsize=8)
 def load(filepath):
     """
     :param filepath:
-        File path of network graph data ({'nodes': ..., 'links': ...})
+        A str or :class:`pathlib.Path` object gives a path of network graph
+        data ({'nodes': ..., 'links': ...}) in JSON or YAML formats
+
     :param ac_args: keyword arguments given to anyconfig.load
 
     :return: An instance of networkx.Graph
@@ -80,10 +84,13 @@ def find_nodes_by_ip_itr(nodes, ipa):
             yield node
 
 
-def find_net_nodes_by_ip(nodes, ipa):
+def find_net_nodes_by_ip(filepath, ipa):
     """
-    :param nodes: {'addrs': [<ip_network_address>], 'type': ..., ...}
-    :param ipa: A str gives an ip address
+    :param filepath:
+        A str or :class:`pathlib.Path` object gives a path of network graph
+        data ({'nodes': ..., 'links': ...}) in JSON or YAML formats
+
+    :param ipa: A str gives an ip address to find nodes
 
     :return: [] or a list of network nodes sorted by its prefix
 
@@ -97,20 +104,24 @@ def find_net_nodes_by_ip(nodes, ipa):
         addr = node["addrs"][0]  # Net nodes should have an addr in addrs only.
         return netutils.to_network(addr).prefixlen
 
+    nodes = graph_nodes_itr(load(filepath))
     return sorted(find_nodes_by_ip_itr(nodes, ipa), key=_net_key_fun,
                   reverse=True)
 
 
-def find_a_net_node_by_ip(nodes, ipa):
+def find_a_net_node_by_ip(filepath, ipa):
     """
-    :param nodes: {'addrs': [<ip_network_address>], 'type': ..., ...}
-    :param ipa: A str gives an ip address
+    :param filepath:
+        A str or :class:`pathlib.Path` object gives a path of network graph
+        data ({'nodes': ..., 'links': ...}) in JSON or YAML formats
+
+    :param ipa: A str gives an ip address to find nodes
 
     :return: A network node or None
 
     .. seealso:: :func:`find_net_nodes_by_ip`
     """
-    nets = find_net_nodes_by_ip(nodes, ipa)
+    nets = find_net_nodes_by_ip(filepath, ipa)
     return nets[0] if nets else None
 
 
@@ -127,9 +138,12 @@ def select_unique_paths_itr(paths):
             yield path
 
 
-def find_paths_itr(graph, src, dst, node_type=False, **nx_opts):
+def find_paths_itr(filepath, src, dst, node_type=False, **nx_opts):
     """
-    :param graph: networkx.Graph object to find paths from
+    :param filepath:
+        A str or :class:`pathlib.Path` object gives a path of network graph
+        data ({'nodes': ..., 'links': ...}) in JSON or YAML formats
+
     :param src: ipaddress.ip_address object or a string represents IP address
     :param dst: ipaddress.ip_address object or a string represents IP address
     :param node_type: Node type to filter results if given
@@ -140,10 +154,8 @@ def find_paths_itr(graph, src, dst, node_type=False, **nx_opts):
     :yield: A lists of nodes in the found paths
     :raises: ValueError if given src and/or dst is not an IP address string
     """
-    (nodes_1, nodes_2) = itertools.tee(graph_nodes_itr(graph))
-
-    src_net = find_a_net_node_by_ip(nodes_1, src)
-    dst_net = find_a_net_node_by_ip(nodes_2, dst)
+    src_net = find_a_net_node_by_ip(filepath, src)
+    dst_net = find_a_net_node_by_ip(filepath, dst)
 
     if not src_net or not dst_net:
         return
@@ -155,6 +167,7 @@ def find_paths_itr(graph, src, dst, node_type=False, **nx_opts):
 
         return
 
+    graph = load(filepath)
     nss = networkx.all_shortest_paths(graph, src_net["id"], dst_net["id"],
                                       **nx_opts)
     res = [[n for n in graph_nodes_itr(graph) if n["id"] in ns] for ns in nss]
@@ -169,9 +182,12 @@ def find_paths_itr(graph, src, dst, node_type=False, **nx_opts):
         yield npath
 
 
-def find_paths(graph, src, dst, node_type=False, **nx_opts):
+def find_paths(filepath, src, dst, node_type=False, **nx_opts):
     """
-    :param graph: networkx.Graph object to find paths from
+    :param filepath:
+        A str or :class:`pathlib.Path` object gives a path of network graph
+        data ({'nodes': ..., 'links': ...}) in JSON or YAML formats
+
     :param src: ipaddress.ip_address object or a string represents IP address
     :param dst: ipaddress.ip_address object or a string represents IP address
     :param node_type: Node type to filter results if given
@@ -182,7 +198,7 @@ def find_paths(graph, src, dst, node_type=False, **nx_opts):
     :yield: A lists of nodes in the found paths
     :raises: ValueError if given src and/or dst is not an IP address string
     """
-    return list(find_paths_itr(graph, src, dst, node_type=node_type,
+    return list(find_paths_itr(filepath, src, dst, node_type=node_type,
                                **nx_opts))
 
 # vim:sw=4:ts=4:et:

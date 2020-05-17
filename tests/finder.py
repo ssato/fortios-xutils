@@ -28,8 +28,7 @@ class TestCases_10(C.unittest.TestCase):
         self.assertTrue(TT.load(NET_CONF_PATH))
 
     def test_30_find_paths(self):
-        graph = TT.load(NET_CONF_PATH)
-        fnc = functools.partial(TT.find_paths, graph)
+        fnc = functools.partial(TT.find_paths, NET_CONF_PATH)
 
         pss = fnc("192.168.122.2", "192.168.5.10")
         self.assertTrue(pss)
