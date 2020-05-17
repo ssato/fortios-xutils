@@ -6,7 +6,7 @@ r"""Find network nodes.
 """
 from __future__ import absolute_import
 
-from . import firewall, network, parser, utils
+from . import finder, firewall, network, parser, utils
 
 # pylint: disable=unused-import
 from .network import NODE_TYPES, NODE_ANY  # noqa: F401
@@ -220,5 +220,52 @@ def search_firewall_policy_table_by_addr(ip_s, tbl_df):
     :return: A list of mappping objects contains results
     """
     return firewall.search_by_addr_1(ip_s, tbl_df)
+
+
+def load_network_graph(filepath):
+    """
+    :param filepath:
+        A str or :class:`pathlib.Path` object gives a path of network graph
+        data ({'nodes': ..., 'links': ...}) in JSON or YAML formats
+
+    :return: A :class:`networkx.Graph` object contains the network data
+    """
+    return finder.load(filepath)
+
+
+def find_net_nodes_by_ip(filepath, ipa):
+    """
+    :param filepath:
+        A str or :class:`pathlib.Path` object gives a path of network graph
+        data ({'nodes': ..., 'links': ...}) in JSON or YAML formats
+
+    :param ipa: A str gives an ip address to find nodes
+
+    :return: [] or a list of network nodes sorted by its prefix
+
+    .. note:: 10.0.0.0/8 < 10.1.1.0/24 in ipaddress
+    """
+    return finder.find_net_nodes_by_ip(filepath, ipa)
+
+
+def find_paths(filepath, src, dst, node_type=False, **nx_opts):
+    """
+    :param filepath:
+        A str or :class:`pathlib.Path` object gives a path of network graph
+        data ({'nodes': ..., 'links': ...}) in JSON or YAML formats
+
+    :param src: A str gives an ip address of the source
+    :param dst: A str gives an ip address of the destination
+    :param node_type: Node type to filter results if given
+    :param nx_opts:
+        Keyword options given to networkx.all_shortest_paths() such as method,
+        and weight
+
+    :return: An iterable object to yield nodes in the found paths
+    :raises:
+        ValueError if given src and/or dst is not an IP address string, etc.
+    """
+    return finder.find_paths(filepath, src, dst, node_type=node_type,
+                             **nx_opts)
 
 # vim:sw=4:ts=4:et:
