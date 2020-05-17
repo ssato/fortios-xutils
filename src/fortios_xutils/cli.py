@@ -15,7 +15,8 @@ import logging
 import anyconfig
 import click
 
-from fortios_xutils import api
+import fortios_xutils
+import fortios_xutils.api
 
 
 LOG = logging.getLogger("fortios_xutils")
@@ -72,7 +73,7 @@ def parse(filepaths, outdir):
 
     :param outdir: Dir to save parsed results as JSON files
     """
-    api.parse_and_save_show_configs(filepaths, outdir)
+    fortios_xutils.parse_and_save_show_configs(filepaths, outdir)
 
 
 @click.command()
@@ -108,7 +109,7 @@ def search(filepaths, path_exp):
         results
     :param path_exp: JMESPath expression to search for
     """
-    res = api.query_json_files(filepaths, path_exp)
+    res = fortios_xutils.query_json_files(filepaths, path_exp)
 
     if len(res) == 1:
         print(anyconfig.dumps(res[0]["results"], ac_parser="json", indent=2))
@@ -152,7 +153,8 @@ def network_collect(filepaths, outdir=False, prefix=24):
     :param outdir: Dir to save outputs [same dir input files exist]
     :param prefix: Max network prefix to search networks for
     """
-    api.collect_and_save_networks(filepaths, outdir=outdir, prefix=prefix)
+    fortios_xutils.collect_and_save_networks(filepaths, outdir=outdir,
+                                             prefix=prefix)
 
 
 @click.command()
@@ -192,7 +194,7 @@ def network_compose(filepaths, outpath):
         command in advance.
     :param outpath: Path of the file to save data
     """
-    api.compose_and_save_networks(filepaths, outpath=outpath)
+    fortios_xutils.compose_and_save_networks(filepaths, outpath=outpath)
 
 
 @click.command()
@@ -220,7 +222,8 @@ def firewall_policy_save(filepaths, outdir):
         "show *configuration" outpath
     :param outdir: Dir to save outputs [same dir input files exist]
     """
-    api.make_and_save_firewall_policy_tables(filepaths, outdir=outdir)
+    fortios_xutils.make_and_save_firewall_policy_tables(filepaths,
+                                                        outdir=outdir)
 
 
 @click.command()
@@ -270,8 +273,8 @@ def firewall_policy_search(filepath, ip_s):
         Path to a pandas.DataFrame data file contains firewall policy table
     :param ip_s: IP address string to search
     """
-    rdf = api.load_firewall_policy_table(filepath)
-    res = api.search_firewall_policy_table_by_addr(ip_s, rdf)
+    rdf = fortios_xutils.load_firewall_policy_table(filepath)
+    res = fortios_xutils.search_firewall_policy_table_by_addr(ip_s, rdf)
 
     print(anyconfig.dumps(res, ac_parser="json", indent=2))
 
@@ -282,7 +285,7 @@ def firewall_policy_search(filepath, ip_s):
 @click.argument("dst_ip")
 @click.option("-N", "--ntype",
               help="Specify node type from the list: "
-                   "{}".format(", ".join(api.NODE_TYPES)))
+                   "{}".format(", ".join(fortios_xutils.api.NODE_TYPES)))
 def network_find_paths(filepath, src_ip, dst_ip, ntype=None):
     """
     Search paths from the source `src_ip` to the destination `dst_ip`.
@@ -340,7 +343,7 @@ def network_find_paths(filepath, src_ip, dst_ip, ntype=None):
     :param src_ip: IP address of the source
     :param dst_ip: IP address of the destination
     """
-    res = api.find_network_paths(filepath, src_ip, dst_ip)
+    res = fortios_xutils.find_network_paths(filepath, src_ip, dst_ip)
 
     aopts = dict(ac_parser="json", indent=2)
     print(anyconfig.dumps(res, **aopts))
