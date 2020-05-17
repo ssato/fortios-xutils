@@ -15,12 +15,15 @@ from .network import NODE_TYPES, NODE_ANY  # noqa: F401
 def parse_and_save_show_configs(filepaths, outdir):
     """
     :param filepaths:
-        An iterable yields path might contains '*' (glob) pattern will be
-        expanded to a list of paths of files each gives a str or
-        :class:`pathlib.Path` object represents file path contains 'show
-        full-configuration` or any other 'show ...' outputs
+        An iterable object yields a str or :class:`pathlib.Path` object gives a
+        file path, or a str contains '*' (glob) pattern will be expanded to a
+        list of strings each gives a file path. Each files must contain
+        fortigate's "show full-configuration" or any other 'show ...' outputs
+        to parse.
+
     :param outdir:
-        Dir to save parsed results as JSON files [out/ relative to filepaths]
+        Dir to save parsed results as JSON files. "out/" relative to paths in
+        given `filepaths` by default.
 
     :return:
         A list of a tuple of (input file path, mapping object contains parsed
@@ -34,12 +37,15 @@ def parse_and_save_show_configs(filepaths, outdir):
 def _query_json_files_itr(filepaths, path_exp):
     """
     :param filepaths:
-        An iterable yields a path might contain '*' (glob) pattern will be
-        expanded to a list of paths to JSON input files to query using JMESPath
-        expression.
+        An iterable object yields a str or :class:`pathlib.Path` object gives a
+        file path, or a str contains '*' (glob) pattern will be expanded to a
+        list of strings each gives a file path. Each files must be in JSON
+        format to query using JMESPath expression `path_exp`.
+
     :param path_exp: JMESPath expression to query
 
-    :yields: A tuple of (input file path, a mapping object gives the result)
+    :yields:
+        A tuple of (input file path, a mapping object gives the query result)
     """
     for filepath in utils.expand_glob_paths_itr(filepaths):
         cnf = parser.load(filepath)
@@ -51,12 +57,16 @@ def _query_json_files_itr(filepaths, path_exp):
 def query_json_files(filepaths, path_exp):
     """
     :param filepaths:
-        An iterable yields a path might contain '*' (glob) pattern will be
-        expanded to a list of paths to JSON input files to query using JMESPath
-        expression.
+        An iterable object yields a str or :class:`pathlib.Path` object gives a
+        file path, or a str contains '*' (glob) pattern will be expanded to a
+        list of strings each gives a file path. Each files must be in JSON
+        format to query using JMESPath expression `path_exp`.
+
     :param path_exp: JMESPath expression to query
 
-    :return: A tuple of (input file path, a mapping object gives the result)
+    :return:
+        A list of tuples of (input file path, a mapping object gives the query
+        result)
     """
     return [dict(filepath=t[0], results=t[1]) for t
             in _query_json_files_itr(filepaths, path_exp)]
@@ -65,10 +75,15 @@ def query_json_files(filepaths, path_exp):
 def collect_networks(filepaths, prefix=network.NET_MAX_PREFIX):
     """
     :param filepaths:
-        An iterable yields a path might contain '*' (glob) pattern will be
-        expanded to a list of paths to JSON input files which contains parsed
-        and structured results of fortigate's configuration outputs
-    :param prefix: Max network prefix to collect
+        An iterable object yields a str or :class:`pathlib.Path` object gives a
+        file path, or a str contains '*' (glob) pattern will be expanded to a
+        list of strings each gives a file path. Each files must be in JSON
+        format and contain parsed result of fortigate's "show
+        full-configuration" or any other 'show ...' outputs.
+
+    :param prefix:
+        Max network prefix to collect; networks with prefix larger than this
+        value will be summarized to networks with smaller prefix.
 
     :return: A tuple of (input file path, a mapping object gives the result)
     """
@@ -80,11 +95,16 @@ def collect_and_save_networks(filepaths, outdir=False,
                               prefix=network.NET_MAX_PREFIX):
     """
     :param filepaths:
-        An iterable yields a path might contain '*' (glob) pattern will be
-        expanded to a list of paths to JSON input files which contains parsed
-        and structured results of fortigate's configuration outputs
+        An iterable object yields a str or :class:`pathlib.Path` object gives a
+        file path, or a str contains '*' (glob) pattern will be expanded to a
+        list of strings each gives a file path. Each files must be in JSON
+        format and contain parsed result of fortigate's "show
+        full-configuration" or any other 'show ...' outputs.
+
     :param outdir: Dir to save outputs [same dir input files exist]
-    :param prefix: Max network prefix to collect
+    :param prefix:
+        Max network prefix to collect; networks with prefix larger than this
+        value will be summarized to networks with smaller prefix.
 
     :return: A tuple of (input file path, a mapping object gives the result)
     """
@@ -100,7 +120,8 @@ def compose_networks(filepaths):
     links) information collected from fortigate's parsed configuration file.
 
     :param filepaths:
-        A list of path to the JSON file contains network graph data
+        An iterable object yields a path to the JSON file contains network
+        graph data
 
     :return: A graph data contains metadata, nodes and links data
     """
@@ -114,7 +135,9 @@ def compose_and_save_networks(filepaths, outpath=False):
     links) information collected from fortigate's parsed configuration file.
 
     :param filepaths:
-        A list of path to the JSON file contains network graph data
+        An iterable object yields a path to the JSON file contains network
+        graph data
+
     :param outpath: Output file path
 
     :return: A graph data contains metadata, nodes and links data
@@ -125,11 +148,16 @@ def compose_and_save_networks(filepaths, outpath=False):
 
 def make_firewall_policy_table(filepath):
     """
-    :param filepath:
-        A path might to JSON input files which contains parsed and structured
-        results of fortigate's configuration outputs
+    :param filepaths:
+        An iterable object yields a str or :class:`pathlib.Path` object gives a
+        file path, or a str contains '*' (glob) pattern will be expanded to a
+        list of strings each gives a file path. Each files must be in JSON
+        format and contain parsed result of fortigate's "show
+        full-configuration" or any other 'show ...' outputs.
 
-    :return: A :class:`pandas.DataFrame` object
+    :return:
+        A :class:`pandas.DataFrame` object contains the firewall policy table
+        data
     """
     return firewall.make_firewall_policy_table(filepath)
 
@@ -137,11 +165,15 @@ def make_firewall_policy_table(filepath):
 def make_firewall_policy_tables(filepaths):
     """
     :param filepaths:
-        An iterable yields a path might contain '*' (glob) pattern will be
-        expanded to a list of paths to JSON input files which contains parsed
-        and structured results of fortigate's configuration outputs
+        An iterable object yields a str or :class:`pathlib.Path` object gives a
+        file path, or a str contains '*' (glob) pattern will be expanded to a
+        list of strings each gives a file path. Each files must be in JSON
+        format and contain parsed result of fortigate's "show
+        full-configuration" or any other 'show ...' outputs.
 
-    :return: A list of :class:`pandas.DataFrame` object
+    :return:
+        A list of :class:`pandas.DataFrame` objects contain the firewall policy
+        table data
     """
     return firewall.make_firewall_policy_tables(filepaths)
 
@@ -149,11 +181,17 @@ def make_firewall_policy_tables(filepaths):
 def make_and_save_firewall_policy_tables(filepaths, outdir=False):
     """
     :param filepaths:
-        An iterable yields a path might contain '*' (glob) pattern will be
-        expanded to a list of paths to JSON input files which contains parsed
-        and structured results of fortigate's configuration outputs
+        An iterable object yields a str or :class:`pathlib.Path` object gives a
+        file path, or a str contains '*' (glob) pattern will be expanded to a
+        list of strings each gives a file path. Each files must be in JSON
+        format and contain parsed result of fortigate's "show
+        full-configuration" or any other 'show ...' outputs.
 
-    :return: A list of :class:`pandas.DataFrame` object
+    :param outdir: Output dir to save results
+
+    :return:
+        A list of :class:`pandas.DataFrame` objects contain the firewall policy
+        table data
     """
     return firewall.make_and_save_firewall_policy_tables(
         filepaths, outdir=outdir
@@ -162,9 +200,12 @@ def make_and_save_firewall_policy_tables(filepaths, outdir=False):
 
 def load_firewall_policy_table(filepath):
     """
-    :param filepath: Path to the JSON file contains fortigate's configurations
+    :param filepath:
+        Path to the file contains the :class:`pandas.DataFrame` object gives
+        firewall policy table data
 
-    :return: A :class:`pandas.DataFrame` object
+    :return:
+        A :class:`pandas.DataFrame` object gives firewall policy table data
     """
     return firewall.load_firewall_policy_table(filepath)
 
@@ -172,9 +213,9 @@ def load_firewall_policy_table(filepath):
 def search_firewall_policy_table_by_addr(ip_s, tbl_df):
     """
     :param ip_s: A str represents an IP address
-    :param tbl_df:
-        A :class:`pandas.DataFrame` object contains ip addresses in the columns
-        have one or some of `addrs_cols`.
+    :param filepath:
+        Path to the file contains the :class:`pandas.DataFrame` object gives
+        firewall policy table data
 
     :return: A list of mappping objects contains results
     """
