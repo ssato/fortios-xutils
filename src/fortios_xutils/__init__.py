@@ -12,7 +12,10 @@ from .api import (  # noqa: F401
     make_firewall_policy_tables,
     make_and_save_firewall_policy_tables,
     load_firewall_policy_table,
-    search_firewall_policy_table_by_addr
+    search_firewall_policy_table_by_addr,
+    load_network_graph,
+    find_network_nodes_by_ip,
+    find_network_paths
 )
 
 
@@ -29,6 +32,9 @@ make_firewall_policy_tables
 make_and_save_firewall_policy_tables
 load_firewall_policy_table
 search_firewall_policy_table_by_addr
+load_network_graph
+find_network_nodes_by_ip
+find_network_paths
 """.split()
 
 # vim:sw=4:ts=4:et:
