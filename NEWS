@@ -1,3 +1,7 @@
+* Sun May 17 2020 ssato - 0.3.0
+- change: export APIs
+- fix: add missing test cases
+
 * Sat May 16 2020 ssato - 0.2.0
 - add and define library APIs
 - fix: add missing test cases
