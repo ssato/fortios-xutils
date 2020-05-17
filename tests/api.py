@@ -91,14 +91,14 @@ class TestCase(C.TestCaseWithWorkdir):
         self.assertTrue(res)
 
     def test_60_compose_and_save_networks__single_input(self):
-        opath = os.path.join("out", N.NET_ALL_FILENAME)
+        opath = os.path.join(self.workdir, "out", N.NET_ALL_FILENAME)
         for cpath in self.cpaths:
             res = TT.compose_and_save_networks([cpath], opath)
             self.assertTrue(res)
             self.assertTrue(os.path.exists(opath))
 
     def test_62_compose_and_save_networks__multi_inputs(self):
-        opath = os.path.join("out", N.NET_ALL_FILENAME)
+        opath = os.path.join(self.workdir, "out", N.NET_ALL_FILENAME)
         res = TT.compose_and_save_networks(self.cpaths, opath)
         self.assertTrue(res)
         self.assertTrue(os.path.exists(opath))
