@@ -17,20 +17,16 @@ import fortios_xutils.parser as P
 import tests.common as C
 
 
-def abspaths(paths):
-    return [os.path.abspath(p) for p in paths]
-
-
 class Base(C.TestCase):
 
-    sources = abspaths(C.list_res_files("show_configs", "*.txt"))
-    cpaths = abspaths(C.list_res_files("parsed",
-                                       os.path.join('*', P.ALL_FILENAME)))
-    fpaths = abspaths(
+    sources = C.abspaths(C.list_res_files("show_configs", "*.txt"))
+    cpaths = C.abspaths(C.list_res_files("parsed",
+                                         os.path.join('*', P.ALL_FILENAME)))
+    fpaths = C.abspaths(
         C.list_res_files("firewall",
                          os.path.join('*', F.FWP_TABLE_FILENAME))
     )
-    npaths = abspaths(C.list_res_files("networks", "graph.yml"))
+    npaths = C.abspaths(C.list_res_files("networks", "graph.yml"))
 
     # .. seealso:: tests/res/show_configs/*.txt
     ref_ips = ["192.168.122.10/24", "192.168.1.10/24"]

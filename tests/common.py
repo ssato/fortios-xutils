@@ -44,6 +44,13 @@ def list_res_files(subdir, pattern="*"):
     return sorted(glob.glob(os.path.join(resdir(), subdir, pattern)))
 
 
+def abspaths(paths):
+    """
+    an wrapper function of os.path.abspath to process mutliple paths.
+    """
+    return [os.path.abspath(p) for p in paths]
+
+
 def setup_workdir():
     """Setup working dir
     """
