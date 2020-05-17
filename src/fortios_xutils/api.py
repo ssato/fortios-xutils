@@ -233,7 +233,7 @@ def load_network_graph(filepath):
     return finder.load(filepath)
 
 
-def find_net_nodes_by_ip(filepath, ipa):
+def find_network_nodes_by_ip(filepath, ipa):
     """
     :param filepath:
         A str or :class:`pathlib.Path` object gives a path of network graph
@@ -248,7 +248,7 @@ def find_net_nodes_by_ip(filepath, ipa):
     return finder.find_net_nodes_by_ip(filepath, ipa)
 
 
-def find_paths(filepath, src, dst, node_type=False, **nx_opts):
+def find_network_paths(filepath, src, dst, node_type=False, **nx_opts):
     """
     :param filepath:
         A str or :class:`pathlib.Path` object gives a path of network graph
