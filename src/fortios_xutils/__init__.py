@@ -15,7 +15,9 @@ from .api import (  # noqa: F401
     search_firewall_policy_table_by_addr,
     load_network_graph,
     find_network_nodes_by_ip,
-    find_network_paths
+    find_network_paths,
+    NODE_TYPES,
+    NODE_ANY, NODE_NET, NODE_HOST, NODE_ROUTER, NODE_SWITCH, NODE_FIREWALL
 )
 
 
@@ -35,6 +37,13 @@ search_firewall_policy_table_by_addr
 load_network_graph
 find_network_nodes_by_ip
 find_network_paths
+NODE_TYPES
+NODE_ANY
+NODE_NET
+NODE_HOST
+NODE_ROUTER
+NODE_SWITCH
+NODE_FIREWALL
 """.split()
 
 # vim:sw=4:ts=4:et:
