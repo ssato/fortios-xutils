@@ -9,7 +9,10 @@ from __future__ import absolute_import
 from . import finder, firewall, network, parser, utils
 
 # pylint: disable=unused-import
-from .network import NODE_TYPES, NODE_ANY  # noqa: F401
+from .network import (  # noqa: F401
+    NODE_TYPES,
+    NODE_ANY, NODE_NET, NODE_HOST, NODE_ROUTER, NODE_SWITCH, NODE_FIREWALL
+)
 
 
 def parse_and_save_show_configs(filepaths, outdir):
