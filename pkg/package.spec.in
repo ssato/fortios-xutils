@@ -6,7 +6,7 @@ Very experimental miscellaneous and extra utilities for fortios.
 
 Name:           python-%{pkgname}
 Version:        @VERSION@
-Release:        1%{?dist}
+Release:        @RELEASE@
 Summary:        Very experimental miscellaneous and extra utilities for fortios
 License:        MIT
 URL:            https://github.com/ssato/fortios-xutils
