@@ -18,7 +18,7 @@ from . import utils
 
 
 IPV4_IP_RE_S = r"^(\d{1,3}\.){3}\d{1,3}"
-IPV4_IP_RE = re.compile(IPV4_IP_RE_S + r'$')
+IPV4_IP_RE = re.compile(IPV4_IP_RE_S + r'(/\d{1,2})?$')
 UNI_NETMASK_RE = re.compile(r"^255.255.255.255$")
 
 NET_MAX_PREFIX = 24
@@ -35,7 +35,7 @@ def normalize_ip(ip_s, prefix="/32"):
     '192.168.122.0/24'
     """
     if not utils.is_str(ip_s):
-        raise ValueError("A str is expected but not: {!r}".format(ip_s))
+        raise ValueError("A str was expected but got: {!r}".format(ip_s))
 
     if '/' not in ip_s:  # e.g. 192.168.122.1
         return ip_s + prefix  # Normalize it.
@@ -118,7 +118,8 @@ def to_network(addr_s):
     :param addr_s:
         A str represents an any IP address, maybe a host (unicast) or network
         address
-    :return: An IPv*Network object or None
+    :return: An IPv*Network object
+    :raises: ValueError if given object `addr_s` is not an ip address str
 
     >>> to_network("10.0.1.0/24")
     IPv4Network('10.0.1.0/24')
@@ -126,23 +127,29 @@ def to_network(addr_s):
     IPv4Network('10.0.1.2/32')
     >>> to_network("10.0.1.2")
     IPv4Network('10.0.1.2/32')
-    >>> to_network("10.0.1.2/24") is None
-    True
-    >>> to_network("aaa") is None
-    True
+    >>> to_network("10.0.1.2/24")
+    IPv4Network('10.0.1.2/32')
+    >>> to_network("aaa")  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ValueError: ...
     """
     if isinstance(addr_s, (ipaddress.IPv4Network, ipaddress.IPv6Network)):
         return addr_s  # Nothing to do.
 
     if not utils.is_str(addr_s):
-        raise ValueError("A str is expected but not: {!r}".format(addr_s))
+        raise ValueError("A str was expected but got: {!r}".format(addr_s))
+
+    if not IPV4_IP_RE.match(addr_s):
+        raise ValueError("An ip address str was expected but got: "
+                         "{!s}".format(addr_s))
 
     try:
         return ipaddress.ip_network(addr_s)
 
-    # addr_s is not an ip address or an address with host bit set, etc.
+    # addr_s is an address with host bit set.
     except ValueError:
-        return None
+        addr_s = normalize_ip(addr_s.split('/')[0])
+        return ipaddress.ip_network(addr_s)
 
 
 def to_networks(*addrs):
