@@ -1,3 +1,7 @@
+* Fri May 22 2020 ssato - 0.3.2
+- fix: [rpm] parameterize the release
+- fix: make .netutils.to_network robust for wrong inputs
+
 * Wed May 20 2020 ssato - 0.3.1
 - change: export some globals
 - enhancement: add API docs
