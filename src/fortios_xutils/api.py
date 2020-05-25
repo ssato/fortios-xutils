@@ -29,8 +29,8 @@ def parse_and_save_show_configs(filepaths, outdir):
         given `filepaths` by default.
 
     :return:
-        A list of a tuple of (input file path, mapping object contains parsed
-        results)
+        ((all) output filepath, a mapping object contains parsed result)
+
     :raises: IOError, OSError
     """
     fsit = utils.expand_glob_paths_itr(filepaths)

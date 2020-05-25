@@ -30,14 +30,18 @@ class TestCase(C.TestCaseWithWorkdir):
         """
         return getattr(self.mod, fun)
 
-    def test_10__parse_and_save_show_configs_single_input(self):
+    def test_10_parse_and_save_show_configs__single_input(self):
         # Find test target function lazily.
         tfn = self._fun("parse_and_save_show_configs")
 
         outdir = os.path.join(self.workdir, "out")
         for src in self.sources:
             res = tfn([src], outdir)
+
             self.assertTrue(res)
+
+            self.assertTrue(os.path.exists(res[0][0]))  # output filepath
+            self.assertTrue(res[0][1])  # parsed result (mapping object)
 
             for fname in (P.METADATA_FILENAME, P.ALL_FILENAME):
                 files = glob.glob(os.path.join(outdir, '*', fname))
@@ -49,6 +53,10 @@ class TestCase(C.TestCaseWithWorkdir):
         outdir = os.path.join(self.workdir, "out")
         res = tfn(self.sources, outdir)
         self.assertTrue(res)
+
+        for opath, cnf in res:
+            self.assertTrue(os.path.exists(opath))
+            self.assertTrue(cnf)
 
         for fname in (P.METADATA_FILENAME, P.ALL_FILENAME):
             files = glob.glob(os.path.join(outdir, '*', fname))
