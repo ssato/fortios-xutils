@@ -1,3 +1,7 @@
+* Tue May 26 2020 ssato - 0.4.0
+- change/fix: [api] change the API parse_and_save_show_configs to return a list
+  of pairs of output filepath and a mapping object holding the parsed result
+
 * Fri May 22 2020 ssato - 0.3.2
 - fix: [rpm] parameterize the release
 - fix: make .netutils.to_network robust for wrong inputs

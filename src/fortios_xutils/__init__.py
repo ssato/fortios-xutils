@@ -21,7 +21,7 @@ from .api import (  # noqa: F401
 )
 
 
-__version__ = "0.3.2"
+__version__ = "0.4.0"
 __all__ = """
 parse_and_save_show_configs
 query_json_files
