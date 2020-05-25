@@ -29,7 +29,8 @@ def parse_and_save_show_configs(filepaths, outdir):
         given `filepaths` by default.
 
     :return:
-        ((all) output filepath, a mapping object contains parsed result)
+        A list of pairs of ((all) output filepath, a mapping object contains
+        parsed result)
 
     :raises: IOError, OSError
     """
