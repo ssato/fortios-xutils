@@ -30,9 +30,8 @@ LOG = logging.getLogger("fortios_xutils")
                     "input filepath]"), default=None)
 def parse(filepaths, outdir):
     """
-    Parse fortigate CLI's "show *configuration* outputs and generate a
-    structured JSON file. FILEPATHS is a list of file paths or a glob pattern
-    gives that.
+    Parse fortigate CLI's "show *configuration* outputs and generate structured
+    JSON files. FILEPATHS is a list of file paths or a glob pattern gives that.
 
     Examples:
 
