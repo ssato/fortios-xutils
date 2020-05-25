@@ -160,14 +160,6 @@ class TestCases_30_parse(C.unittest.TestCase):
             self.assertEqual(res, ref)
 
 
-def houtdir(outdir, cnf):
-    """Compute the output dir for each hosts.
-    """
-    opts = dict(has_vdoms_=TT.has_vdom(cnf))
-    hostname = TT.hostname_from_configs(cnf, **opts)
-    return os.path.join(outdir, hostname)
-
-
 class TestCases_50(C.TestCaseWithWorkdir):
 
     maxDiff = None
@@ -181,9 +173,7 @@ class TestCases_50(C.TestCaseWithWorkdir):
             self.assertTrue(cnf)
             self.assertNotEqual(opath, cpath)
 
-            hdir = houtdir(outdir, cnf)
-            self.assertEqual(os.path.dirname(opath), hdir)
-
+            hdir = os.path.dirname(opath)
             for fname in (TT.METADATA_FILENAME, TT.ALL_FILENAME):
                 self.assertTrue(os.path.exists(os.path.join(hdir, fname)))
 
@@ -193,7 +183,7 @@ class TestCases_50(C.TestCaseWithWorkdir):
             self.assertTrue(cnf)
             self.assertTrue(os.path.exists(opath))
 
-            hdir = houtdir(self.workdir, cnf)
+            hdir = os.path.dirname(opath)
             for fname in (TT.METADATA_FILENAME, TT.ALL_FILENAME):
                 self.assertTrue(os.path.exists(os.path.join(hdir, fname)))
 
