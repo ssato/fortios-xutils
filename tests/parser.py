@@ -176,21 +176,25 @@ class TestCases_50(C.TestCaseWithWorkdir):
     def test_10_parse_show_config_and_dump(self):
         for idx, cpath in enumerate(self.cpaths):
             outdir = TT.os.path.join(self.workdir, "{!s}".format(idx))
-            cnf = TT.parse_show_config_and_dump(cpath, outdir)
+            (opath, cnf) = TT.parse_show_config_and_dump(cpath, outdir)
 
             self.assertTrue(cnf)
+            self.assertNotEqual(opath, cpath)
 
-            hdir = houtdir(self.workdir, cnf)
+            hdir = houtdir(outdir, cnf)
+            self.assertEqual(os.path.dirname(opath), hdir)
+
             for fname in (TT.METADATA_FILENAME, TT.ALL_FILENAME):
-                self.assertTrue(os.path.join(hdir, fname))
+                self.assertTrue(os.path.exists(os.path.join(hdir, fname)))
 
     def test_20_parse_show_configs_and_dump(self):
-        for _path, cnf in TT.parse_show_configs_and_dump_itr(self.cpaths,
+        for opath, cnf in TT.parse_show_configs_and_dump_itr(self.cpaths,
                                                              self.workdir):
             self.assertTrue(cnf)
+            self.assertTrue(os.path.exists(opath))
 
             hdir = houtdir(self.workdir, cnf)
             for fname in (TT.METADATA_FILENAME, TT.ALL_FILENAME):
-                self.assertTrue(os.path.join(hdir, fname))
+                self.assertTrue(os.path.exists(os.path.join(hdir, fname)))
 
 # vim:sw=4:ts=4:et:

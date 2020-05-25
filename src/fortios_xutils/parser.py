@@ -284,7 +284,9 @@ def parse_show_config_and_dump(inpath, outdir=None, cnames=CNF_NAMES):
         'show full-configuration` or any other 'show ...' outputs
     :param outdir: Dir to save parsed results as JSON files
 
-    :return: A mapping object contains parsed results
+    :return:
+        ((all) output filepath, a mapping object contains parsed result)
+
     :raises: IOError, OSError
     """
     cnf = parse_show_config(inpath)  # {"configs": [...]}
@@ -332,7 +334,7 @@ def parse_show_config_and_dump(inpath, outdir=None, cnames=CNF_NAMES):
                         vdoms=vdoms, origina_data=inpath),
                    os.path.join(houtdir, METADATA_FILENAME))
 
-    return cnf
+    return (outpath, cnf)
 
 
 def parse_show_configs_and_dump_itr(inpaths, outdir=None, cnames=CNF_NAMES):
@@ -342,13 +344,12 @@ def parse_show_configs_and_dump_itr(inpaths, outdir=None, cnames=CNF_NAMES):
         of mulitple paths
     :param outdir: Dir to save parsed results as JSON files
 
-    :yield:
-        A list of a tuple of (input file path, mapping object contains parsed
-        results)
+    :return:
+        ((all) output filepath, a mapping object contains parsed result)
+
     :raises: IOError, OSError
     """
     for inpath in inpaths:
-        yield (inpath,
-               parse_show_config_and_dump(inpath, outdir, cnames=cnames))
+        yield parse_show_config_and_dump(inpath, outdir, cnames=cnames)
 
 # vim:sw=4:ts=4:et:
