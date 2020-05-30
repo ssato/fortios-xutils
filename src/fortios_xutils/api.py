@@ -182,7 +182,8 @@ def make_firewall_policy_tables(filepaths):
     return firewall.make_firewall_policy_tables(filepaths)
 
 
-def make_and_save_firewall_policy_tables(filepaths, outdir=False):
+def make_and_save_firewall_policy_tables(filepaths, outdir=False,
+                                         filetype=None):
     """
     :param filepaths:
         An iterable object yields a str or :class:`pathlib.Path` object gives a
@@ -192,26 +193,28 @@ def make_and_save_firewall_policy_tables(filepaths, outdir=False):
         full-configuration" or any other 'show ...' outputs.
 
     :param outdir: Output dir to save results
+    :param filetype: File type to save as
 
     :return:
         A list of :class:`pandas.DataFrame` objects contain the firewall policy
         table data
     """
     return firewall.make_and_save_firewall_policy_tables(
-        filepaths, outdir=outdir
+        filepaths, outdir=outdir, filetype=filetype
     )
 
 
-def load_firewall_policy_table(filepath):
+def load_firewall_policy_table(filepath, filetype=None):
     """
     :param filepath:
         Path to the file contains the :class:`pandas.DataFrame` object gives
         firewall policy table data
+    :param filetype: File type saved as
 
     :return:
         A :class:`pandas.DataFrame` object gives firewall policy table data
     """
-    return firewall.load_firewall_policy_table(filepath)
+    return firewall.load_firewall_policy_table(filepath, filetype=filetype)
 
 
 def search_firewall_policy_table_by_addr(ip_s, tbl_df):

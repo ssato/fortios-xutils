@@ -255,19 +255,19 @@ def make_firewall_policy_tables(filepaths, vdom=None):
 def _get_exts(filepath):
     """
     >>> _get_exts("/a/b.pickle.gz")
-    ['pickle', 'gz']
+    ['gz', 'pickle']
     >>> _get_exts("/a/b.pickle")
     ['pickle']
     >>> _get_exts("/a/b/c")
     []
     """
-    return os.path.basename(filepath).split('.')[1:]
+    return list(reversed(os.path.basename(filepath).split('.')[1:]))
 
 
 def guess_file_type(filepath):
     """
     :param filepath: File path
-    :return: a str denotes the file type 
+    :return: a str denotes the file type
 
     >>> guess_file_type(  # doctest: +IGNORE_EXCEPTION_DETAIL
     ...     "x",
@@ -287,6 +287,12 @@ def guess_file_type(filepath):
     if not exts or '.' not in fname:
         raise ValueError("Unknown file type: " + fname)
 
+    if exts[0] in COMPRESSION_EXTS:
+        if len(exts) < 2:
+            raise ValueError("Invalid file type: " + fname)
+
+        return exts[1]
+
     return exts[0]
 
 
@@ -297,7 +303,7 @@ def pandas_save(rdf, outpath, filetype=None):
     :param filetype: File type to save as
     :param compression: Compression method
     """
-    fext = guess_file_type(filetype)
+    fext = guess_file_type(outpath)
     ftype = filetype if filetype else fext
 
     try:
@@ -364,7 +370,7 @@ def pandas_load(inpath, filetype=None):
     :param inpath: Output file path
     :param filetype: File type to save as
     """
-    fext = guess_file_type(filetype)
+    fext = guess_file_type(inpath)
     ftype = filetype if filetype else fext
 
     try:

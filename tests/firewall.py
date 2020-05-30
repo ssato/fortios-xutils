@@ -21,11 +21,10 @@ class TestCases_10(C.TestCase):
         self.assertFalse(rdf.empty)
         self.assertEqual(rdf.to_dict(orient="record"), [dict(a=1)])
 
-    def test_30_guess_filetype(self):
-        self.assertEqual(TT.guess_filetype("foo.pickle"), "pickle")
-        self.assertEqual(TT.guess_filetype("foo.json"), "json")
-        self.assertEqual(TT.guess_filetype("foo.json.gz", compression=True),
-                         "json")
+    def test_30_guess_file_type(self):
+        self.assertEqual(TT.guess_file_type("foo.pickle"), "pickle")
+        self.assertEqual(TT.guess_file_type("foo.json"), "json")
+        self.assertEqual(TT.guess_file_type("foo.json.gz"), "json")
 
 
 class TestCases_20(C.TestCaseWithWorkdir):
@@ -37,7 +36,7 @@ class TestCases_20(C.TestCaseWithWorkdir):
             rdf = TT.pandas_load(filepath)
             self.assertTrue(rdf.empty)
 
-            TT.pandas_save(TT.DF_ZERO, filepath + ".gz", compression="gzip")
+            TT.pandas_save(TT.DF_ZERO, filepath + ".gz")
             self.assertTrue(TT.os.path.exists(filepath + ".gz"))
 
     def test_12_pandas_save_load__excs(self):

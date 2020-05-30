@@ -160,7 +160,7 @@ class TestCliCases(Base):
                 self.assertTrue(res.output)
                 self.assertNotEqual(res.output, "[]\n")
 
-    def test_52_firewall_policy_save_and_search__multi_inputs(self):
+    def test_54_firewall_policy_save_and_search__multi_inputs(self):
         outdir = "out"
         with self.runner.isolated_filesystem():
             res = self.runner.invoke(TT.firewall_policy_save,
