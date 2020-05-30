@@ -25,9 +25,10 @@ DF_ZERO = pandas.DataFrame()
 
 ADDRS_COL_NAMES = ("addrs", "srcaddrs", "dstaddrs")
 
-FWP_TABLE_FILENAME = "firewall_policy_table.data.pickle.gz"
-COMPRESSION_MAPS = dict(gz="gzip", bz2="bz2", zip='zip', xz='xz')
-DEFAULT_COMPRESSION = "gzip"
+FWP_TABLE_FILENAME = "firewall_policy_table.data.json.gz"
+
+# .. seealso:: :func:`pandas.DataFrame.to_json`
+COMPRESSION_EXTS = set("gz bz2 zip xz".split())
 
 
 def df_by_query(path_exp, data, normalize_fn=None,
@@ -251,113 +252,138 @@ def make_firewall_policy_tables(filepaths, vdom=None):
     return [make_firewall_policy_table(f, vdom=vdom) for f in filepaths]
 
 
-def guess_filetype(filepath, compression=None):
+def _get_exts(filepath):
+    """
+    >>> _get_exts("/a/b.pickle.gz")
+    ['pickle', 'gz']
+    >>> _get_exts("/a/b.pickle")
+    ['pickle']
+    >>> _get_exts("/a/b/c")
+    []
+    """
+    return os.path.basename(filepath).split('.')[1:]
+
+
+def guess_file_type(filepath):
     """
     :param filepath: File path
-    :param filetype: File type of `filepath`
-    :param compression: Compression type
+    :return: a str denotes the file type 
+
+    >>> guess_file_type(  # doctest: +IGNORE_EXCEPTION_DETAIL
+    ...     "x",
+    ... )
+    Traceback (most recent call last):
+    ValueError: ...
+    >>> guess_file_type("/a/b.pickle.gz")
+    'pickle'
+    >>> guess_file_type("/a/b.json")
+    'json'
+    >>> guess_file_type("c.pickle")
+    'pickle'
     """
-    comp_exts = COMPRESSION_MAPS.keys()
-    maybe_ext = os.path.splitext(filepath)[-1]
+    fname = os.path.basename(filepath)
+    exts = _get_exts(fname)
 
-    if compression or maybe_ext.replace('.', '') in comp_exts:
-        maybe_ext = os.path.splitext(os.path.splitext(filepath)[0])[-1]
+    if not exts or '.' not in fname:
+        raise ValueError("Unknown file type: " + fname)
 
-    return maybe_ext.replace('.', '')
+    return exts[0]
 
 
-def pandas_save(rdf, outpath, filetype=None, compression=None):
+def pandas_save(rdf, outpath, filetype=None):
     """
     :param rdf: A :class:`pandas.DataFrame` object
     :param outpath: Output file path
     :param filetype: File type to save as
     :param compression: Compression method
     """
-    if filetype:
-        save_fn_name = "to_" + filetype
-    else:
-        save_fn_name = "to_" + guess_filetype(outpath, compression=compression)
+    fext = guess_file_type(filetype)
+    ftype = filetype if filetype else fext
+
     try:
-        save_fn = getattr(rdf, save_fn_name)
+        save_fn = getattr(rdf, "to_{}".format(ftype))
     except AttributeError:
-        raise ValueError("Could not find appropriate save functions: "
-                         "outpath={}, filetype={!s}".format(outpath, filetype))
+        raise ValueError("Looks an invalid filetype: outpath={}, "
+                         "(detected/given) filetype={}".format(outpath, ftype))
 
     utils.ensure_dir_exists(outpath)
-    save_fn(outpath, compression=compression)
+    save_fn(outpath)
 
 
 def make_and_save_firewall_policy_table(filepath, outpath, vdom=None,
-                                        filetype=None,
-                                        compression=DEFAULT_COMPRESSION):
+                                        filetype=None):
     """
     :param filepath: Path to the JSON file contains fortigate's configurations
     :param outpath: Output file path
     :param vdom: Specify vdom to make table
     :param filetype: File type to save as
-    :param compression: Compression method
 
     :return: A :class:`pandas.DataFrame` object
     """
     rdf = make_firewall_policy_table(filepath, vdom=vdom)
-    pandas_save(rdf, outpath, filetype=filetype, compression=compression)
+    pandas_save(rdf, outpath, filetype=filetype)
 
     return rdf
 
 
 def make_and_save_firewall_policy_tables_itr(filepaths, outdir=False,
-                                             vdom=None):
+                                             vdom=None, filetype=None):
     """
     :param filepath: Path to the JSON file contains fortigate's configurations
     :param outdir: Dir to save outputs [same dir input files exist]
     :param vdom: Specify vdom to make table
+    :param filetype: File type to save as
 
     :return: A generator yields :class:`pandas.DataFrame` object
     """
     for fpath, outpath in utils.get_io_paths(filepaths, FWP_TABLE_FILENAME,
                                              outdir):
-        yield make_and_save_firewall_policy_table(fpath, outpath, vdom=vdom)
+        yield make_and_save_firewall_policy_table(fpath, outpath, vdom=vdom,
+                                                  filetype=filetype)
 
 
-def make_and_save_firewall_policy_tables(filepaths, outdir=False, vdom=None):
+def make_and_save_firewall_policy_tables(filepaths, outdir=False, vdom=None,
+                                         filetype=None):
     """
     :param filepath: Path to the JSON file contains fortigate's configurations
     :param outdir: Dir to save outputs [same dir input files exist]
     :param vdom: Specify vdom to make table
+    :param filetype: File type to save as
 
     :return: A list of :class:`pandas.DataFrame` objects
     """
     return list(
         make_and_save_firewall_policy_tables_itr(
-            filepaths, outdir=outdir, vdom=vdom
+            filepaths, outdir=outdir, vdom=vdom, filetype=filetype
         )
     )
 
 
-def pandas_load(inpath, filetype=None, compression=None):
+def pandas_load(inpath, filetype=None):
     """
     :param inpath: Output file path
     :param filetype: File type to save as
-    :param compression: Compression method
     """
-    load_fn_name = "read_" + (filetype if filetype else guess_filetype(inpath))
+    fext = guess_file_type(filetype)
+    ftype = filetype if filetype else fext
+
     try:
-        load_fn = getattr(pandas, load_fn_name)
+        load_fn = getattr(pandas, "read_{}".format(ftype))
     except AttributeError:
-        raise ValueError("Could not find appropriate load functions: "
-                         "inpath={}, filetype={!s}".format(inpath, filetype))
+        raise ValueError("Looks an invalid filetype: outpath={}, "
+                         "(detected/given) filetype={}".format(inpath, ftype))
 
-    return load_fn(inpath, compression=compression)
+    return load_fn(inpath)
 
 
-def load_firewall_policy_table(filepath, compression=DEFAULT_COMPRESSION):
+def load_firewall_policy_table(filepath, filetype=None):
     """
     :param filepath: Path to the JSON file contains fortigate's configurations
-    :param compression: Compression method
+    :param filetype: File type to save as
 
     :return: A :class:`pandas.DataFrame` object
     """
-    return pandas_load(filepath, compression=compression)
+    return pandas_load(filepath, filetype=filetype)
 
 
 def search_by_addr_1(ip_s, tbl_df, addrs_cols=ADDRS_COL_NAMES):
