@@ -296,16 +296,12 @@ def guess_file_type(filepath):
     return exts[0]
 
 
-def pandas_save(rdf, outpath, filetype=None):
+def pandas_save(rdf, outpath):
     """
     :param rdf: A :class:`pandas.DataFrame` object
     :param outpath: Output file path
-    :param filetype: File type to save as
-    :param compression: Compression method
     """
-    fext = guess_file_type(outpath)
-    ftype = filetype if filetype else fext
-
+    ftype = guess_file_type(outpath)
     try:
         save_fn = getattr(rdf, "to_{}".format(ftype))
     except AttributeError:
@@ -316,63 +312,58 @@ def pandas_save(rdf, outpath, filetype=None):
     save_fn(outpath)
 
 
-def make_and_save_firewall_policy_table(filepath, outpath, vdom=None,
-                                        filetype=None):
+def make_and_save_firewall_policy_table(filepath, outpath, vdom=None):
     """
     :param filepath: Path to the JSON file contains fortigate's configurations
     :param outpath: Output file path
     :param vdom: Specify vdom to make table
-    :param filetype: File type to save as
 
     :return: A :class:`pandas.DataFrame` object
     """
     rdf = make_firewall_policy_table(filepath, vdom=vdom)
-    pandas_save(rdf, outpath, filetype=filetype)
+    pandas_save(rdf, outpath)
 
     return rdf
 
 
-def make_and_save_firewall_policy_tables_itr(filepaths, outdir=False,
-                                             vdom=None, filetype=None):
+def make_and_save_firewall_policy_tables_itr(filepaths, outname=None,
+                                             outdir=False, vdom=None):
     """
     :param filepath: Path to the JSON file contains fortigate's configurations
+    :param outpath: Output file path for the first filepath
     :param outdir: Dir to save outputs [same dir input files exist]
     :param vdom: Specify vdom to make table
-    :param filetype: File type to save as
 
     :return: A generator yields :class:`pandas.DataFrame` object
     """
-    for fpath, outpath in utils.get_io_paths(filepaths, FWP_TABLE_FILENAME,
-                                             outdir):
-        yield make_and_save_firewall_policy_table(fpath, outpath, vdom=vdom,
-                                                  filetype=filetype)
+    oname = outname if outname else FWP_TABLE_FILENAME
+
+    for fpath, outpath in utils.get_io_paths(filepaths, oname, outdir=outdir):
+        yield make_and_save_firewall_policy_table(fpath, outpath, vdom=vdom)
 
 
-def make_and_save_firewall_policy_tables(filepaths, outdir=False, vdom=None,
-                                         filetype=None):
+def make_and_save_firewall_policy_tables(filepaths, outname=None, outdir=False,
+                                         vdom=None):
     """
     :param filepath: Path to the JSON file contains fortigate's configurations
+    :param outname: Output file name for the first filepath
     :param outdir: Dir to save outputs [same dir input files exist]
     :param vdom: Specify vdom to make table
-    :param filetype: File type to save as
 
     :return: A list of :class:`pandas.DataFrame` objects
     """
     return list(
         make_and_save_firewall_policy_tables_itr(
-            filepaths, outdir=outdir, vdom=vdom, filetype=filetype
+            filepaths, outname=outname, outdir=outdir, vdom=vdom
         )
     )
 
 
-def pandas_load(inpath, filetype=None):
+def pandas_load(inpath):
     """
     :param inpath: Output file path
-    :param filetype: File type to save as
     """
-    fext = guess_file_type(inpath)
-    ftype = filetype if filetype else fext
-
+    ftype = guess_file_type(inpath)
     try:
         load_fn = getattr(pandas, "read_{}".format(ftype))
     except AttributeError:
@@ -382,14 +373,13 @@ def pandas_load(inpath, filetype=None):
     return load_fn(inpath)
 
 
-def load_firewall_policy_table(filepath, filetype=None):
+def load_firewall_policy_table(filepath):
     """
     :param filepath: Path to the JSON file contains fortigate's configurations
-    :param filetype: File type to save as
 
     :return: A :class:`pandas.DataFrame` object
     """
-    return pandas_load(filepath, filetype=filetype)
+    return pandas_load(filepath)
 
 
 def search_by_addr_1(ip_s, tbl_df, addrs_cols=ADDRS_COL_NAMES):
