@@ -10,6 +10,7 @@ from .api import (  # noqa: F401
     compose_and_save_networks,
     make_firewall_policy_table,
     make_firewall_policy_tables,
+    make_and_save_firewall_policy_table,
     make_and_save_firewall_policy_tables,
     load_firewall_policy_table,
     search_firewall_policy_table_by_addr,
@@ -21,7 +22,7 @@ from .api import (  # noqa: F401
 )
 
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 __all__ = """
 parse_and_save_show_configs
@@ -32,6 +33,7 @@ compose_networks
 compose_and_save_networks
 make_firewall_policy_table
 make_firewall_policy_tables
+make_and_save_firewall_policy_table
 make_and_save_firewall_policy_tables
 load_firewall_policy_table
 search_firewall_policy_table_by_addr
