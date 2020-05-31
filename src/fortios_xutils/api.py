@@ -182,8 +182,27 @@ def make_firewall_policy_tables(filepaths):
     return firewall.make_firewall_policy_tables(filepaths)
 
 
-def make_and_save_firewall_policy_tables(filepaths, outdir=False,
-                                         filetype=None):
+def make_and_save_firewall_policy_table(filepath, outpath, vdom=None):
+    """
+    :param filepaths:
+        A str or :class:`pathlib.Path` object gives a file path. The file must
+        be in JSON format and contain parsed result of fortigate's "show
+        full-configuration" or any other 'show ...' outputs.
+
+    :param outpath: Path to output
+    :param vdom: Specify vdom to make table
+
+    :return:
+        A :class:`pandas.DataFrame` objects contain the firewall policy
+        table data made from given `filepath`
+    """
+    return firewall.make_and_save_firewall_policy_table(
+        filepath, outpath, vdom=vdom
+    )
+
+
+def make_and_save_firewall_policy_tables(filepaths, outname=None,
+                                         outdir=False):
     """
     :param filepaths:
         An iterable object yields a str or :class:`pathlib.Path` object gives a
@@ -192,29 +211,31 @@ def make_and_save_firewall_policy_tables(filepaths, outdir=False,
         format and contain parsed result of fortigate's "show
         full-configuration" or any other 'show ...' outputs.
 
+    :param outpath:
+        Output file path (of the first file if multiple input file paths were
+        given)
+
     :param outdir: Output dir to save results
-    :param filetype: File type to save as
 
     :return:
         A list of :class:`pandas.DataFrame` objects contain the firewall policy
         table data
     """
     return firewall.make_and_save_firewall_policy_tables(
-        filepaths, outdir=outdir, filetype=filetype
+        filepaths, outname=outname, outdir=outdir
     )
 
 
-def load_firewall_policy_table(filepath, filetype=None):
+def load_firewall_policy_table(filepath):
     """
     :param filepath:
         Path to the file contains the :class:`pandas.DataFrame` object gives
         firewall policy table data
-    :param filetype: File type saved as
 
     :return:
         A :class:`pandas.DataFrame` object gives firewall policy table data
     """
-    return firewall.load_firewall_policy_table(filepath, filetype=filetype)
+    return firewall.load_firewall_policy_table(filepath)
 
 
 def search_firewall_policy_table_by_addr(ip_s, tbl_df):
