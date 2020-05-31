@@ -25,7 +25,7 @@ DF_ZERO = pandas.DataFrame()
 
 ADDRS_COL_NAMES = ("addrs", "srcaddrs", "dstaddrs")
 
-FWP_TABLE_FILENAME = "firewall_policy_table.data.json.gz"
+FWP_TABLE_FILENAME = "firewall_policy_table.data.json"
 
 # .. seealso:: :func:`pandas.DataFrame.to_json`
 COMPRESSION_EXTS = set("gz bz2 zip xz".split())
