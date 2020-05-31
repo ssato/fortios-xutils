@@ -150,7 +150,7 @@ class TestCase(C.TestCaseWithWorkdir):
 
         for idx, cpath in enumerate(self.cpaths):
             outdir = os.path.join(self.workdir, "out-{!s}".format(idx))
-            res = tfn1([cpath], outdir)
+            res = tfn1([cpath], outdir=outdir)
             self.assertTrue(res)
 
             files = glob.glob(os.path.join(outdir, '*',
@@ -177,7 +177,7 @@ class TestCase(C.TestCaseWithWorkdir):
         tfn3 = self._fun("search_firewall_policy_table_by_addr")
 
         outdir = os.path.join(self.workdir, "out")
-        res = tfn1(self.cpaths, outdir)
+        res = tfn1(self.cpaths, outdir=outdir)
         self.assertTrue(res)
 
         files = sorted(glob.glob(os.path.join(outdir, '*',

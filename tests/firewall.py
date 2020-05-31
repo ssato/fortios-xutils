@@ -5,6 +5,8 @@
 # pylint: disable=missing-docstring,invalid-name
 from __future__ import absolute_import
 
+import os.path
+
 import fortios_xutils.firewall as TT
 import fortios_xutils.parser as P
 import tests.common as C
@@ -59,6 +61,19 @@ class TestCases_30(C.TestCaseWithWorkdir, TestCasesWithConfigs):
             rdf = TT.make_and_save_firewall_policy_table(cpath, opath)
             self.assertFalse(rdf.empty)
             self.assertTrue(TT.os.path.exists(opath))
+
+    def test_30_make_and_save_firewall_policy_tables(self):
+        res = TT.make_and_save_firewall_policy_tables(self.cpaths)
+        self.assertTrue(res)
+        self.assertFalse(any(rdf.empty for rdf in res))
+
+    def test_32_make_and_save_firewall_policy_tables(self):
+        outdir = os.path.join(self.workdir, "out")
+        res = TT.make_and_save_firewall_policy_tables(self.cpaths,
+                                                      outname="fw.pickle.gz",
+                                                      outdir=outdir)
+        self.assertTrue(res)
+        self.assertFalse(any(rdf.empty for rdf in res))
 
 
 class TestCases_40(TestCasesWithConfigs):
