@@ -82,7 +82,8 @@ def main(filepath=None, outdir=None):
     streamlit.title("Fortigate Firewall Analysis")
 
     filepath = process_config(outdir=outdir)
-    firewall_policy_search(filepath, outdir=outdir)
+    if filepath:
+        firewall_policy_search(filepath, outdir=outdir)
 
 if __name__ == '__main__':
     main()
