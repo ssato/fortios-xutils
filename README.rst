@@ -13,9 +13,13 @@ fortios-xutils
    :target: https://pypi.python.org/pypi/fortios-xutils/
    :alt: MIT License
 
+.. image:: https://github.com/ssato/fortios-xutils/workflows/Tests/badge.svg
+   :target: https://github.com/ssato/fortios-xutils/actions?query=workflow%3ATests
+   :alt: GHA Test status
+
 .. image:: https://img.shields.io/travis/ssato/fortios-xutils.svg
    :target: https://travis-ci.org/ssato/fortios-xutils
-   :alt: Test status
+   :alt: Travis-CI Test status
 
 .. .. image:: https://img.shields.io/coveralls/ssato/fortios-xutils.svg
       :target: https://coveralls.io/r/ssato/fortios-xutils
