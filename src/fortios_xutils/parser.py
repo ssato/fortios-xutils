@@ -298,11 +298,16 @@ def parse_show_config_and_dump(inpath, outdir=None, cnames=CNF_NAMES):
         # It should have this in most cases.
         hostname = hostname_from_configs(cnf, has_vdoms_=_has_vdoms)
     except ValueError as exc:
-        LOG.warning("%r: %s\nCould not resovle hostname", exc, inpath)
+        LOG.warning("%r: %s\nCould not resolve hostname", exc, inpath)
         hostname = unknown_name()
 
     if not outdir:
         outdir = "out"
+
+    if hostname is None:
+        # hostname_from_configs might return None if hostname is not defined
+        LOG.warning("Hostname could not be resolved")
+        hostname = unknown_name()
 
     houtdir = os.path.join(outdir, hostname)
 
