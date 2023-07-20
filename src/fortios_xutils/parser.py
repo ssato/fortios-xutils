@@ -61,7 +61,7 @@ def jmespath_search_1(path_exp, data, normalize_fn=None):
     LOG.debug("%s: JMESPath exp: %s", __name__, path_exp)
     res = utils.search(path_exp, data)
     if callable(normalize_fn):
-        if not utils.is_str(res) and isinstance(res, collections.Sequence):
+        if not utils.is_str(res) and isinstance(res, collections.abc.Sequence):
             res = [normalize_fn(r) for r in res]
         else:
             res = normalize_fn(res)
