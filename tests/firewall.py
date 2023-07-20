@@ -21,7 +21,7 @@ class TestCases_10(C.TestCase):
     def test_12_df_by_query__found(self):
         rdf = TT.df_by_query("configs[]", dict(configs=[dict(a=1)]))
         self.assertFalse(rdf.empty)
-        self.assertEqual(rdf.to_dict(orient="record"), [dict(a=1)])
+        self.assertEqual(rdf.to_dict(orient="records"), [dict(a=1)])
 
     def test_30_guess_file_type(self):
         self.assertEqual(TT.guess_file_type("foo.pickle"), "pickle")
