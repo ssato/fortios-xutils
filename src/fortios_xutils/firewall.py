@@ -167,7 +167,7 @@ def get_firewall_address_by_edit(edit, df_fa=DF_ZERO):
     """
     return sorted(itertools.chain.from_iterable(
         e["addrs"] for e
-        in df_fa[df_fa["edit"] == edit].fillna('').to_dict(orient="record")
+        in df_fa[df_fa["edit"] == edit].fillna('').to_dict(orient="records")
         if e.get("addrs")
     ))
 
@@ -397,7 +397,7 @@ def search_by_addr_1(ip_s, tbl_df, addrs_cols=ADDRS_COL_NAMES):
     ip_s = netutils.normalize_ip(ip_s)
 
     # TODO: I don't know how to accomplish this with pandas.DataFrame.
-    rdf = tbl_df.fillna('').to_dict(orient="record")
+    rdf = tbl_df.fillna('').to_dict(orient="records")
     res = (x for x in rdf
            if any(netutils.is_ip_in_addrs(ip_s, x.get(k, []))
                   for k in addrs_cols))
